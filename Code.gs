@@ -1,6 +1,6 @@
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
-  spreadsheetId: 'REEMPLAZAR_CON_ID_DEL_GOOGLE_SHEET',
+  spreadsheetId: '1NUUJ0i9h1Y0pQFfVQyo8DEdaeZgsN-_PoMo-Fekt72E',
   timeZone: 'America/Caracas',
   headers: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO'],
   sheetNames: {
