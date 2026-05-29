@@ -9,16 +9,75 @@ const FALLBACK_CATALOGS = {
       id: 'servicio',
       label: 'ERROR EN SERVICIO (BARRA)',
       description: 'Mala facturacion: cobro de mas o cambios mal anotados.',
+      incidenciasCatalog: 'incidenciasServicio',
+      extraFields: [
+        {
+          name: 'listaIncidencias',
+          label: 'Lista de Incidencias *',
+          type: 'select',
+          placeholder: 'Seleccione una incidencia...',
+          optionsKey: 'incidenciasServicio',
+          required: true,
+        },
+        {
+          name: 'observaciones',
+          label: 'Observaciones',
+          type: 'textarea',
+          placeholder: 'Breve expicacion',
+          required: false,
+        },
+      ],
     },
     {
       id: 'manipulacion',
       label: 'MALA MANIPULACION (COCINA)',
       description: 'Producto quemado, mal armado o error en cambios.',
+      incidenciasCatalog: 'incidenciasManipulacion',
+      extraFields: [
+        {
+          name: 'listaIncidencias',
+          label: 'Lista de Incidencias *',
+          type: 'select',
+          placeholder: 'Seleccione una incidencia...',
+          optionsKey: 'incidenciasManipulacion',
+          required: true,
+        },
+        {
+          name: 'observaciones',
+          label: 'Observaciones',
+          type: 'textarea',
+          placeholder: 'Breve expicacion',
+          required: false,
+        },
+      ],
     },
     {
       id: 'desperdicio',
       label: 'DESPERDICIO PERECEDERO (VEGETALES)',
       description: 'Vegetales marchitos o mayugados.',
+    },
+    {
+      id: 'merma_pan',
+      label: 'MERMA DE PAN (COCINA)',
+      description: 'Pan de cocina retirado por merma o vencimiento del paquete.',
+      productCatalog: 'productosMermaPan',
+      extraFields: [
+        {
+          name: 'cantidad',
+          label: 'Cantidad *',
+          type: 'number',
+          placeholder: '0',
+          min: '1',
+          step: '1',
+          required: true,
+        },
+        {
+          name: 'fechaVencimiento',
+          label: 'Fecha de vencimiento del paquete *',
+          type: 'date',
+          required: true,
+        },
+      ],
     },
   ],
   responsables: [
@@ -29,6 +88,24 @@ const FALLBACK_CATALOGS = {
     'KEIDER MORA',
   ],
   turnos: ['DIURNO', 'NOCTURNO'],
+  incidenciasServicio: ['Mala facturacion', 'Cobro de mas', 'Cambios mal anotados'],
+  incidenciasManipulacion: ['Producto quemado', 'Producto mal armado', 'Error en cambios'],
+  productosMermaPan: [
+    'PTEM0107 BAGEL EVERYTHING 105 GR 4 UND',
+    'PTEM0108 BAGELS PLAIN 105 GR 4 UND',
+    'PTEM0109 BAGEL AMAPOLA 105 G 4 UND',
+    'PTEM0110 BAGELS AJONJOLI 105 GR 4 UND',
+    'PTEM0111 BAGEL SPICY 105 GR 4 UND',
+    'PTEM0134 BAGELS INTEGRAL CON TOOPING DE AVENA',
+    'PTEM0060 PAN DE HAMBURGUESA ESPECIAL 55 GR 6 UND',
+    'PTEM0043 PAN DE HAMBURGUESA ESPECIAL 85 GR 6 UND A24',
+    'PTEM0086 PAN DE HAMBURGUESA TIPO BRIOCHE 95 GR 6 UND WAB',
+    'PTEM0072 PAN DE PERRO MINI ESPECIAL 50 GR 12 UND',
+    'PTEM0002 PAN DE PERRO',
+    'PTEM0004 PAN TIPO DELI',
+    'PTSU0046 CROISSANT SIMPLE 120 GR 1 UND',
+    'STPC007 DEMI BAGUETTE CONGELADO 180G 1 UND',
+  ],
   productos: [
     'BAGEL INTEGRAL DE POLLO AHUMADO',
     'BAGEL DE PROSCIUTTO',
@@ -148,12 +225,15 @@ function setupModuleSelection() {
     elements.moduleButtons.forEach((button) => button.classList.remove('active'));
     elements.entryPanel.classList.add('hidden');
     elements.form.reset();
+    elements.extraFields.innerHTML = '';
+    elements.extraFields.classList.add('hidden');
     setToday();
+    renderProductOptions();
   });
 }
 
 function openModule(moduleId) {
-  const module = state.catalogs.modules.find((item) => item.id === moduleId);
+  const module = getActiveModule(moduleId);
   if (!module) return;
 
   state.activeModule = moduleId;
@@ -165,21 +245,48 @@ function openModule(moduleId) {
   elements.entryPanel.classList.remove('hidden');
   elements.form.reset();
   setToday();
+  renderProductOptions(module);
   renderExtraFields(module);
   elements.entryPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function renderExtraFields(module) {
-  // This is ready for additional per-module controls when the sheet gains new columns.
   const fields = Array.isArray(module.extraFields) ? module.extraFields : [];
-  elements.extraFields.innerHTML = '';
+  elements.extraFields.innerHTML = fields.map(renderExtraField).join('');
   elements.extraFields.classList.toggle('hidden', fields.length === 0);
+}
+
+function renderExtraField(field) {
+  const required = field.required ? ' required' : '';
+  const label = `${escapeHtml(field.label || field.name)}${field.required && !String(field.label || '').includes('*') ? ' *' : ''}`;
+  const placeholder = field.placeholder ? ` placeholder="${escapeHtml(field.placeholder)}"` : '';
+
+  if (field.type === 'select') {
+    const values = Array.isArray(state.catalogs[field.optionsKey]) ? state.catalogs[field.optionsKey] : [];
+    const options = [`<option value="">${escapeHtml(field.placeholder || 'Seleccione una opcion...')}</option>`]
+      .concat(values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`))
+      .join('');
+    return `<label><span>${label}</span><select name="${escapeHtml(field.name)}"${required}>${options}</select></label>`;
+  }
+
+  if (field.type === 'textarea') {
+    return `<label class="extra-fields__wide"><span>${label}</span><textarea name="${escapeHtml(field.name)}" rows="3"${placeholder}${required}></textarea></label>`;
+  }
+
+  const min = field.min ? ` min="${escapeHtml(field.min)}"` : '';
+  const step = field.step ? ` step="${escapeHtml(field.step)}"` : '';
+  return `<label><span>${label}</span><input name="${escapeHtml(field.name)}" type="${escapeHtml(field.type || 'text')}"${placeholder}${min}${step}${required} /></label>`;
 }
 
 function renderCatalogs() {
   renderSelect(elements.responsable, state.catalogs.responsables, 'Seleccione un responsable...');
   renderSelect(elements.turno, state.catalogs.turnos, 'Seleccione un turno...');
-  elements.productList.innerHTML = state.catalogs.productos
+  renderProductOptions(getActiveModule());
+}
+
+function renderProductOptions(module) {
+  const products = getProductCatalog(module);
+  elements.productList.innerHTML = products
     .map((producto) => `<option value="${escapeHtml(producto)}"></option>`)
     .join('');
 }
@@ -197,7 +304,8 @@ function renderSelect(select, values, placeholder) {
 function setupForm() {
   elements.form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!state.activeModule) {
+    const module = getActiveModule();
+    if (!module) {
       showToast('Selecciona un modulo antes de guardar.', 'error');
       return;
     }
@@ -209,6 +317,7 @@ function setupForm() {
       producto: String(formData.get('producto') || '').trim(),
       responsable: String(formData.get('responsable') || '').trim(),
       turno: String(formData.get('turno') || '').trim(),
+      ...readExtraPayload(formData, module),
     };
 
     if (!payload.fecha || !payload.producto || !payload.responsable || !payload.turno) {
@@ -216,7 +325,9 @@ function setupForm() {
       return;
     }
 
-    if (!hasCatalogValue(state.catalogs.productos, payload.producto)) {
+    if (!validateExtraFields(payload, module)) return;
+
+    if (!hasCatalogValue(getProductCatalog(module), payload.producto)) {
       showToast('Selecciona un producto valido de la lista.', 'error');
       return;
     }
@@ -241,6 +352,41 @@ function setupForm() {
   });
 }
 
+function readExtraPayload(formData, module) {
+  const fields = Array.isArray(module.extraFields) ? module.extraFields : [];
+  return fields.reduce((payload, field) => {
+    payload[field.name] = String(formData.get(field.name) || '').trim();
+    return payload;
+  }, {});
+}
+
+function validateExtraFields(payload, module) {
+  const fields = Array.isArray(module.extraFields) ? module.extraFields : [];
+  const missing = fields.find((field) => field.required && !payload[field.name]);
+  if (missing) {
+    showToast('Completa todos los campos obligatorios.', 'error');
+    return false;
+  }
+
+  if (payload.listaIncidencias) {
+    const values = state.catalogs[module.incidenciasCatalog] || [];
+    if (values.length && !hasCatalogValue(values, payload.listaIncidencias)) {
+      showToast('Selecciona una incidencia valida de la lista.', 'error');
+      return false;
+    }
+  }
+
+  if (payload.cantidad) {
+    const quantity = Number(payload.cantidad);
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      showToast('La cantidad debe ser un numero entero mayor a cero.', 'error');
+      return false;
+    }
+  }
+
+  return true;
+}
+
 async function loadRemoteCatalogs() {
   if (!APPS_SCRIPT_URL) return;
 
@@ -252,8 +398,10 @@ async function loadRemoteCatalogs() {
     state.catalogs = {
       ...FALLBACK_CATALOGS,
       ...result.data,
+      modules: mergeModules(FALLBACK_CATALOGS.modules, result.data.modules),
     };
     renderCatalogs();
+    if (state.activeModule) renderExtraFields(getActiveModule());
   } catch (error) {
     showToast('Se usara el catalogo local mientras se conecta Apps Script.', 'error');
   }
@@ -289,6 +437,30 @@ function setLoading(loading) {
   elements.submitButton.disabled = loading;
   elements.submitButton.textContent = loading ? 'Guardando...' : 'Guardar Registro';
   elements.standbyOverlay.classList.toggle('hidden', !loading);
+}
+
+function mergeModules(localModules, remoteModules) {
+  if (!Array.isArray(remoteModules)) return localModules;
+  const remoteById = new Map(remoteModules.map((module) => [module.id, module]));
+  const merged = localModules.map((module) => ({
+    ...module,
+    ...(remoteById.get(module.id) || {}),
+  }));
+
+  remoteModules.forEach((module) => {
+    if (!merged.some((item) => item.id === module.id)) merged.push(module);
+  });
+
+  return merged;
+}
+
+function getActiveModule(moduleId = state.activeModule) {
+  return state.catalogs.modules.find((item) => item.id === moduleId) || null;
+}
+
+function getProductCatalog(module) {
+  const catalogName = module && module.productCatalog ? module.productCatalog : 'productos';
+  return Array.isArray(state.catalogs[catalogName]) ? state.catalogs[catalogName] : [];
 }
 
 function hasCatalogValue(values, rawValue) {

@@ -2,11 +2,17 @@ const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
   spreadsheetId: '1NUUJ0i9h1Y0pQFfVQyo8DEdaeZgsN-_PoMo-Fekt72E',
   timeZone: 'America/Caracas',
-  headers: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO'],
+  headers: {
+    default: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO'],
+    servicio: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES'],
+    manipulacion: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES'],
+    merma_pan: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'CANTIDAD', 'FECHA DE VENCIMIENTO DEL PAQUETE'],
+  },
   sheetNames: {
     servicio: 'ERROR EN SERVICIO (BARRA)',
     manipulacion: 'MALA MANIPULACION (COCINA)',
     desperdicio: 'DESPERDICIO PERECEDERO (VEG)',
+    merma_pan: 'MERMA DE PAN (COCINA)',
   },
 };
 
@@ -16,16 +22,75 @@ const CATALOGS = {
       id: 'servicio',
       label: 'ERROR EN SERVICIO (BARRA)',
       description: 'Mala facturacion: cobro de mas o cambios mal anotados.',
+      incidenciasCatalog: 'incidenciasServicio',
+      extraFields: [
+        {
+          name: 'listaIncidencias',
+          label: 'Lista de Incidencias *',
+          type: 'select',
+          placeholder: 'Seleccione una incidencia...',
+          optionsKey: 'incidenciasServicio',
+          required: true,
+        },
+        {
+          name: 'observaciones',
+          label: 'Observaciones',
+          type: 'textarea',
+          placeholder: 'Breve expicacion',
+          required: false,
+        },
+      ],
     },
     {
       id: 'manipulacion',
       label: 'MALA MANIPULACION (COCINA)',
       description: 'Producto quemado, mal armado o error en cambios.',
+      incidenciasCatalog: 'incidenciasManipulacion',
+      extraFields: [
+        {
+          name: 'listaIncidencias',
+          label: 'Lista de Incidencias *',
+          type: 'select',
+          placeholder: 'Seleccione una incidencia...',
+          optionsKey: 'incidenciasManipulacion',
+          required: true,
+        },
+        {
+          name: 'observaciones',
+          label: 'Observaciones',
+          type: 'textarea',
+          placeholder: 'Breve expicacion',
+          required: false,
+        },
+      ],
     },
     {
       id: 'desperdicio',
       label: 'DESPERDICIO PERECEDERO (VEGETALES)',
       description: 'Vegetales marchitos o mayugados.',
+    },
+    {
+      id: 'merma_pan',
+      label: 'MERMA DE PAN (COCINA)',
+      description: 'Pan de cocina retirado por merma o vencimiento del paquete.',
+      productCatalog: 'productosMermaPan',
+      extraFields: [
+        {
+          name: 'cantidad',
+          label: 'Cantidad *',
+          type: 'number',
+          placeholder: '0',
+          min: '1',
+          step: '1',
+          required: true,
+        },
+        {
+          name: 'fechaVencimiento',
+          label: 'Fecha de vencimiento del paquete *',
+          type: 'date',
+          required: true,
+        },
+      ],
     },
   ],
   responsables: [
@@ -36,6 +101,24 @@ const CATALOGS = {
     'KEIDER MORA',
   ],
   turnos: ['DIURNO', 'NOCTURNO'],
+  incidenciasServicio: ['Mala facturacion', 'Cobro de mas', 'Cambios mal anotados'],
+  incidenciasManipulacion: ['Producto quemado', 'Producto mal armado', 'Error en cambios'],
+  productosMermaPan: [
+    'PTEM0107 BAGEL EVERYTHING 105 GR 4 UND',
+    'PTEM0108 BAGELS PLAIN 105 GR 4 UND',
+    'PTEM0109 BAGEL AMAPOLA 105 G 4 UND',
+    'PTEM0110 BAGELS AJONJOLI 105 GR 4 UND',
+    'PTEM0111 BAGEL SPICY 105 GR 4 UND',
+    'PTEM0134 BAGELS INTEGRAL CON TOOPING DE AVENA',
+    'PTEM0060 PAN DE HAMBURGUESA ESPECIAL 55 GR 6 UND',
+    'PTEM0043 PAN DE HAMBURGUESA ESPECIAL 85 GR 6 UND A24',
+    'PTEM0086 PAN DE HAMBURGUESA TIPO BRIOCHE 95 GR 6 UND WAB',
+    'PTEM0072 PAN DE PERRO MINI ESPECIAL 50 GR 12 UND',
+    'PTEM0002 PAN DE PERRO',
+    'PTEM0004 PAN TIPO DELI',
+    'PTSU0046 CROISSANT SIMPLE 120 GR 1 UND',
+    'STPC007 DEMI BAGUETTE CONGELADO 180G 1 UND',
+  ],
   productos: [
     'BAGEL INTEGRAL DE POLLO AHUMADO',
     'BAGEL DE PROSCIUTTO',
@@ -144,18 +227,23 @@ function guardarIncidencia_(payload) {
   validateRequired_(data, ['tipoIncidencia', 'fecha', 'producto', 'responsable', 'turno']);
 
   const module = resolveModule_(data.tipoIncidencia);
-  const producto = requireCatalogValue_(data.producto, CATALOGS.productos, 'producto');
+  const productCatalog = CATALOGS[module.productCatalog || 'productos'];
+  const producto = requireCatalogValue_(data.producto, productCatalog, 'producto');
   const responsable = requireCatalogValue_(data.responsable, CATALOGS.responsables, 'responsable');
   const turno = requireCatalogValue_(data.turno, CATALOGS.turnos, 'turno');
-  const fecha = parseDate_(data.fecha);
+  const fecha = parseDate_(data.fecha, 'fecha');
   const sheet = getSheet_(module.sheetName);
+  const row = buildRow_(module, data, fecha, producto, responsable, turno);
+  const headers = CONFIG.headers[module.id] || CONFIG.headers.default;
 
-  ensureHeaders_(sheet);
-  const row = [fecha, producto, responsable, turno];
+  ensureHeaders_(sheet, headers);
   const targetRow = sheet.getLastRow() + 1;
   sheet.getRange(targetRow, 1, 1, row.length).setValues([row]);
   try {
     sheet.getRange(targetRow, 1).setNumberFormat('dd/MM/yyyy');
+    if (module.id === 'merma_pan') {
+      sheet.getRange(targetRow, 6).setNumberFormat('dd/MM/yyyy');
+    }
   } catch (error) {
     Logger.log('No se pudo aplicar formato de fecha: ' + error);
   }
@@ -167,6 +255,25 @@ function guardarIncidencia_(payload) {
   };
 }
 
+function buildRow_(module, data, fecha, producto, responsable, turno) {
+  if (module.id === 'servicio' || module.id === 'manipulacion') {
+    validateRequired_(data, ['listaIncidencias']);
+    const incidenciasCatalog = CATALOGS[module.incidenciasCatalog] || [];
+    const listaIncidencias = requireCatalogValue_(data.listaIncidencias, incidenciasCatalog, 'listaIncidencias');
+    const observaciones = String(data.observaciones || '').trim();
+    return [fecha, producto, responsable, turno, listaIncidencias, observaciones];
+  }
+
+  if (module.id === 'merma_pan') {
+    validateRequired_(data, ['cantidad', 'fechaVencimiento']);
+    const cantidad = parsePositiveInteger_(data.cantidad, 'cantidad');
+    const fechaVencimiento = parseDate_(data.fechaVencimiento, 'fechaVencimiento');
+    return [fecha, producto, responsable, turno, cantidad, fechaVencimiento];
+  }
+
+  return [fecha, producto, responsable, turno];
+}
+
 function resolveModule_(rawValue) {
   const id = String(rawValue || '').trim().toLowerCase();
   const module = CATALOGS.modules.find(function (item) {
@@ -175,10 +282,9 @@ function resolveModule_(rawValue) {
   if (!module || !CONFIG.sheetNames[module.id]) {
     throw new Error('Tipo de incidencia no valido.');
   }
-  return {
-    id: module.id,
+  return Object.assign({}, module, {
     sheetName: CONFIG.sheetNames[module.id],
-  };
+  });
 }
 
 function getSheet_(sheetName) {
@@ -187,15 +293,10 @@ function getSheet_(sheetName) {
   }
 
   const spreadsheet = SpreadsheetApp.openById(CONFIG.spreadsheetId);
-  const sheet = spreadsheet.getSheetByName(sheetName);
-  if (!sheet) {
-    throw new Error('No se encontro la hoja "' + sheetName + '". Revisa CONFIG.sheetNames.');
-  }
-  return sheet;
+  return spreadsheet.getSheetByName(sheetName) || spreadsheet.insertSheet(sheetName);
 }
 
-function ensureHeaders_(sheet) {
-  const expected = CONFIG.headers;
+function ensureHeaders_(sheet, expected) {
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
     sheet.setFrozenRows(1);
@@ -203,27 +304,45 @@ function ensureHeaders_(sheet) {
   }
 
   const current = sheet.getRange(1, 1, 1, expected.length).getValues()[0].map(normalizeText_);
-  const valid = expected.every(function (header, index) {
+  const baseHeaders = CONFIG.headers.default;
+  const currentBaseIsValid = baseHeaders.every(function (header, index) {
     return normalizeText_(header) === current[index];
   });
-  if (!valid) {
-    throw new Error('La hoja "' + sheet.getName() + '" debe tener columnas: ' + expected.join(', ') + '.');
+  const fullHeadersAreValid = expected.every(function (header, index) {
+    return normalizeText_(header) === current[index];
+  });
+
+  if (fullHeadersAreValid) return;
+  if (currentBaseIsValid) {
+    sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+    sheet.setFrozenRows(1);
+    return;
   }
+
+  throw new Error('La hoja "' + sheet.getName() + '" debe tener columnas: ' + expected.join(', ') + '.');
 }
 
-function parseDate_(rawValue) {
+function parseDate_(rawValue, fieldName) {
   const value = String(rawValue || '').trim();
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) {
-    throw new Error('La fecha debe tener formato YYYY-MM-DD.');
+    throw new Error('El campo ' + fieldName + ' debe tener formato YYYY-MM-DD.');
   }
 
   const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12, 0, 0);
   const normalizedDate = Utilities.formatDate(date, CONFIG.timeZone, 'yyyy-MM-dd');
   if (normalizedDate !== value) {
-    throw new Error('La fecha indicada no es valida.');
+    throw new Error('El campo ' + fieldName + ' no es valido.');
   }
   return date;
+}
+
+function parsePositiveInteger_(rawValue, fieldName) {
+  const value = Number(rawValue);
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error('El campo ' + fieldName + ' debe ser un numero entero mayor a cero.');
+  }
+  return value;
 }
 
 function requireCatalogValue_(rawValue, catalog, fieldName) {
