@@ -125,7 +125,33 @@ const CATALOGS = {
     'PTSU0046 CROISSANT SIMPLE 120 GR 1 UND',
     'STPC007 DEMI BAGUETTE CONGELADO 180G 1 UND',
   ],
-  productos: [
+  productosDesperdicio: [
+    'MDMP0024 PAPA FRESCA KG',
+    'MDMP0061 AJI DULCE KG',
+    'MDMP0062 AJO PELADO KG',
+    'MDMP0064 ALBAHACA KG',
+    'MDMP0074 CEBOLLA BLANCA KG',
+    'MDMP0075 CEBOLLIN KG',
+    'MDMP0076 CHAMPINON KG',
+    'MDMP0077 TOMATE PERITA KG',
+    'MDMP0090 ENELDO KG',
+    'MDMP0116 PEREJIL KG',
+    'MDMP0117 PIMENTON KG',
+    'MDMP0128 REPOLLO BLANCO KG',
+    'MDMP0131 RUGULA KG',
+    'MDMP0142 TOMATE MANZANO KG',
+    'MDMP0152 REPOLLO MORADO KG',
+    'MDMP0182 CELERY KG',
+    'MDMP0227 ESTRAGON FRESCO KG',
+    'MDMP0228 JENGIBRE KG',
+    'MDMP0231 MORAS KG',
+    'MDMP0232 ZANAHORIA KG',
+    'MDMP0233 COL RIZADA KALE KG',
+    'MDMP0237 CEBOLLA MORADA KG',
+    'MDMP0284 PEPINILLOS KG',
+    'MDMP0324 CILANTRO KG',
+    'MDMP0379 LECHUGA RIZADA KG',
+  ],  productos: [
     'BAGEL INTEGRAL DE POLLO AHUMADO',
     'BAGEL DE PROSCIUTTO',
     'BAGEL DE SPREAD DE SALMON',
@@ -542,11 +568,15 @@ function refreshVisualization_() {
   const resumenSheet = getSheet_(CONFIG.visualizationSheets.resumen);
   const resumen = buildSummaryRows_(registros);
   rewriteSheet_(resumenSheet, ['INDICADOR', 'VALOR', 'TOTAL', 'COSTO TOTAL'], resumen);
+  if (resumen.length) {
+    resumenSheet.getRange(2, 4, resumen.length, 1).setNumberFormat('#,##0.00');
+  }
 
   return {
     registrosSheet: CONFIG.visualizationSheets.registros,
     resumenSheet: CONFIG.visualizationSheets.resumen,
     totalRegistros: registros.length,
+    totalCostoPerdido: sumCost_(registros),
   };
 }
 
@@ -589,7 +619,11 @@ function normalizeVisualizationRow_(module, row) {
 }
 
 function buildSummaryRows_(registros) {
-  const rows = [['TOTAL GENERAL', 'REGISTROS', registros.length, sumCost_(registros)]];
+  const totalCosto = sumCost_(registros);
+  const rows = [
+    ['TOTAL COSTO PERDIDO', 'TODOS LOS MODULOS', '', totalCosto],
+    ['TOTAL GENERAL', 'REGISTROS', registros.length, totalCosto],
+  ];
   appendGroupedSummary_(rows, registros, 1, 'POR MODULO');
   appendGroupedSummary_(rows, registros, 3, 'POR RESPONSABLE');
   appendGroupedSummary_(rows, registros, 4, 'POR TURNO');
@@ -637,6 +671,13 @@ function setupPrices_() {
   return {
     priceSheet: priceSheet,
     updatedRows: updatedRows,
+    totalCostoPerdido: visualization.totalCostoPerdido,
+    modulesUpdated: [
+      CONFIG.sheetNames.servicio,
+      CONFIG.sheetNames.manipulacion,
+      CONFIG.sheetNames.desperdicio,
+      CONFIG.sheetNames.merma_pan,
+    ],
     visualization: visualization,
   };
 }
@@ -696,6 +737,7 @@ function updateAllPriceColumns_() {
 }
 
 function findProductPrice_(producto) {
+  if (getSheet_(CONFIG.priceSheetName).getLastRow() < 2) setupPriceSheet_();
   const rows = getPriceCatalogRows_();
   const keys = getProductLookupKeys_(producto);
   const match = rows.find(function (row) {
