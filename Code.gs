@@ -101,8 +101,8 @@ const CATALOGS = {
     'KEIDER MORA',
   ],
   turnos: ['DIURNO', 'NOCTURNO'],
-  incidenciasServicio: ['Mala facturacion', 'Cobro de mas', 'Cambios mal anotados'],
-  incidenciasManipulacion: ['Producto quemado', 'Producto mal armado', 'Error en cambios'],
+  incidenciasServicio: ['Comanda repetida, sin aviso', 'Producto equivocado, segun peticion del cliente', 'Pedido mal entregado, equivocacion de mesas o clientes', 'Cambios mal anotados', 'Se cayo al suelo'],
+  incidenciasManipulacion: ['Pasada de coccion', 'Error en cambios', 'Producto demas / duplicado', 'Mala Manipulacion del pan', 'Se cayo al suelo', 'Proteina cruda', 'Cliente no satisfecho', 'Producto frio o mal emplatado'],
   productosMermaPan: [
     'PTEM0107 BAGEL EVERYTHING 105 GR 4 UND',
     'PTEM0108 BAGELS PLAIN 105 GR 4 UND',
