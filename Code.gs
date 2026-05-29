@@ -3,10 +3,10 @@ const CONFIG = {
   spreadsheetId: '1NUUJ0i9h1Y0pQFfVQyo8DEdaeZgsN-_PoMo-Fekt72E',
   timeZone: 'America/Caracas',
   headers: {
-    default: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO'],
-    servicio: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES'],
-    manipulacion: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES'],
-    merma_pan: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'CANTIDAD', 'FECHA DE VENCIMIENTO DEL PAQUETE'],
+    default: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    servicio: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    manipulacion: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    merma_pan: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'CANTIDAD', 'FECHA DE VENCIMIENTO DEL PAQUETE', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
   },
   sheetNames: {
     servicio: 'ERROR EN SERVICIO (BARRA)',
@@ -18,6 +18,7 @@ const CONFIG = {
     registros: 'VISUALIZACION REGISTROS',
     resumen: 'RESUMEN REGISTROS',
   },
+  priceSheetName: 'PRECIOS PRODUCTOS',
 };
 
 const CATALOGS = {
@@ -72,6 +73,7 @@ const CATALOGS = {
       id: 'desperdicio',
       label: 'DESPERDICIO PERECEDERO (VEGETALES)',
       description: 'Vegetales marchitos o mayugados.',
+      productCatalog: 'productosDesperdicio',
     },
     {
       id: 'merma_pan',
@@ -197,6 +199,83 @@ const CATALOGS = {
   ],
 };
 
+const PRICE_CATALOG = [
+  { producto: 'BAGEL INTEGRAL DE POLLO AHUMADO', precio: 9.05 },
+  { producto: 'BAGEL DE PROSCIUTTO', precio: 13.10 },
+  { producto: 'BAGEL DE SPREAD DE SALMON', precio: 9.22 },
+  { producto: 'BAGEL ALASKA', precio: 12.76 },
+  { producto: 'BAGEL DE QUESO CREMA', precio: 3.62 },
+  { producto: 'BAGEL DE SALMON CLASICO', precio: 11.90 },
+  { producto: 'BAGEL DE CARPACCIO', precio: 9.48 },
+  { producto: 'BAGEL CAPRESA', precio: 9.91 },
+  { producto: 'CROISSANT DE PAVO', precio: 3.45 },
+  { producto: 'CRIOSSANT DE JAMON Y QUESO', precio: 6.21 },
+  { producto: 'DONATELLA VERSACHEESE', precio: 5.60 },
+  { producto: 'SANDUCHE DE MORTADELLA', precio: 10.17 },
+  { producto: 'CROISSANT DE PROSCIUTTO Y QUESO MANCHEGO', precio: 9.40 },
+  { producto: 'CROISSANT DE SALMON AHUMADO Y QUESO CREMA', precio: 9.31 },
+  { producto: 'CROISSANT DE PAVO Y QUESO', precio: 5.17 },
+  { producto: 'SANDUCHE DE PAVO CON QUESO', precio: 6.47 },
+  { producto: 'SANDUCHE DE PROSCIUTTO', precio: 12.93 },
+  { producto: 'SANDUCHE DE PERNIL', precio: 10.34 },
+  { producto: 'SANDUCHE DE CAPRESA', precio: 9.31 },
+  { producto: 'PAPAS FRITAS', precio: 2.16 },
+  { producto: 'PAPAS CHIPS 1 KG', precio: 13.79 },
+  { producto: 'PAPAS CHIPS', precio: 0.95 },
+  { producto: 'AROS DE CEBOLLA', precio: 1.55 },
+  { producto: 'COMBO PAPAS Y REFRESCO', precio: 3.45 },
+  { producto: 'KALE Y POLLO', precio: 9.05 },
+  { producto: 'CESAR CON POLLO Y TOCINETA', precio: 9.91 },
+  { producto: 'QUESO CABRA Y CHIPS DE PROSCIUTTO', precio: 10.78 },
+  { producto: 'RACION TOCINETA', precio: 1.72 },
+  { producto: 'EXTRA PROVOLONE', precio: 1.72 },
+  { producto: 'EXTRA QUESO AMERICANO', precio: 0.86 },
+  { producto: 'HUEVOS FRITOS', precio: 1.29 },
+  { producto: 'PAN TOSTADO', precio: 1.29 },
+  { producto: 'HABIBI', precio: 6.90 },
+  { producto: 'COMBO LECHERIA - DOM', precio: 17.07 },
+  { producto: 'CACHORROS 2 UND', precio: 5.17 },
+  { producto: 'RACION TEQUENOS 6 UND', precio: 5.52 },
+  { producto: 'EXTRA DE POLLO CDH', precio: 1.72 },
+  { producto: 'EXTRA DE CARNE HAMBURGUESITA', precio: 2.59 },
+  { producto: 'LE FRANCHUTE DE SAINT LOUIS', precio: 8.53 },
+  { producto: 'CUBANO DESPELUCADO', precio: 8.53 },
+  { producto: 'PERRO DOS', precio: 3.02 },
+  { producto: 'AMERICAN PATTY', precio: 8.53 },
+  { producto: 'COMBO CHACAO - MIERCOLES', precio: 5.00 },
+  { producto: 'COMBO SAN LUIS - MARTES', precio: 10.52 },
+  { producto: 'THRILLY CHEESESTEAK', precio: 9.05 },
+  { producto: 'PULLED PUNK', precio: 8.62 },
+  { producto: 'PERRO UNO', precio: 3.02 },
+  { producto: 'CDH POLLO', precio: 9.31 },
+  { producto: 'CHICKEN TENDER', precio: 4.48 },
+  { producto: 'EXTRA DE POLLO PATTY', precio: 2.59 },
+  { producto: 'COMBO BELLO CAMPO - JUEVES', precio: 20.69 },
+  { producto: 'COMBO LOS PALOS GRANDES - VIERNES', precio: 12.50 },
+  { producto: 'COMBO LA CANDELARIA - LUNES', precio: 6.03 },
+  { producto: 'CDH CARNE', precio: 9.31 },
+  { producto: 'LA HAMBURGUESITA', precio: 4.14 },
+  { producto: 'SMASH-MOUTH', precio: 7.93 },
+  { producto: 'BABE BURGUER', precio: 7.93 },
+  { producto: 'BLUE BACON', precio: 9.48 },
+  { producto: 'BUFFALO SOULCHICK', precio: 8.45 },
+  { producto: 'LA TUYA', precio: 8.79 },
+  { producto: 'CHICKEN PATTY', precio: 7.67 },
+  { producto: 'EXTRA DE POLLO PARA ENSALADA', precio: 1.72 },
+  { producto: 'SALSA MAYO PESTO PAQ', precio: 3.88 },
+  { producto: 'SALSA ALDALUZA MILD PAQ', precio: 3.88 },
+  { producto: 'VINAGRETA ASIATICA PAQ', precio: 3.88 },
+  { producto: 'MERMELADA DE JALAPENO PAQ', precio: 3.88 },
+  { producto: 'SALSA CDH PAQ', precio: 3.88 },
+  { producto: 'PEPINILLOS ENCURTIDOS PAQ', precio: 6.03 },
+  { producto: 'SPREAD DE SALMON PAQ', precio: 8.19 },
+  { producto: 'SPREAD DE TOMATES SECOS PAQ', precio: 8.19 },
+  { producto: 'SPREAD ALASKA PAQ', precio: 8.19 },
+  { producto: 'LECHE DE ALMENDRAS 340 ML', precio: 2.76 },
+  { producto: 'LECHE DE MEREY 340 ML', precio: 2.76 },
+  { producto: 'LECHUGA RIZADA KG', precio: 1.19 },
+  { producto: 'HABIBI PAQ 2 UND', precio: 5.78 },
+];
 function doGet(e) {
   try {
     const action = String((e && e.parameter && e.parameter.action) || 'ping').toLowerCase();
@@ -210,6 +289,10 @@ function doGet(e) {
     if (action === 'refreshvisualization') {
       const result = refreshVisualization_();
       return jsonResponse_(true, result, 'Visualizacion actualizada.');
+    }
+    if (action === 'setupprices') {
+      const result = setupPrices_();
+      return jsonResponse_(true, result, 'Precios configurados y registros actualizados.');
     }
     if (action === 'ping') {
       return jsonResponse_(true, { ok: true }, 'Servicio disponible.');
@@ -245,7 +328,8 @@ function guardarIncidencia_(payload) {
   const turno = requireCatalogValue_(data.turno, CATALOGS.turnos, 'turno');
   const fecha = parseDate_(data.fecha, 'fecha');
   const sheet = getSheet_(module.sheetName);
-  const row = buildRow_(module, data, fecha, producto, responsable, turno);
+  const price = findProductPrice_(producto);
+  const row = buildRow_(module, data, fecha, producto, responsable, turno, price);
   const headers = CONFIG.headers[module.id] || CONFIG.headers.default;
 
   ensureHeaders_(sheet, headers);
@@ -256,6 +340,7 @@ function guardarIncidencia_(payload) {
     if (module.id === 'merma_pan') {
       sheet.getRange(targetRow, 6).setNumberFormat('dd/MM/yyyy');
     }
+    formatPriceColumns_(sheet, headers);
   } catch (error) {
     Logger.log('No se pudo aplicar formato de fecha: ' + error);
   }
@@ -273,23 +358,23 @@ function guardarIncidencia_(payload) {
   };
 }
 
-function buildRow_(module, data, fecha, producto, responsable, turno) {
+function buildRow_(module, data, fecha, producto, responsable, turno, price) {
   if (module.id === 'servicio' || module.id === 'manipulacion') {
     validateRequired_(data, ['listaIncidencias']);
     const incidenciasCatalog = CATALOGS[module.incidenciasCatalog] || [];
     const listaIncidencias = requireCatalogValue_(data.listaIncidencias, incidenciasCatalog, 'listaIncidencias');
     const observaciones = String(data.observaciones || '').trim();
-    return [fecha, producto, responsable, turno, listaIncidencias, observaciones];
+    return [fecha, producto, responsable, turno, listaIncidencias, observaciones, price, calculateLossCost_(price, 1)];
   }
 
   if (module.id === 'merma_pan') {
     validateRequired_(data, ['cantidad', 'fechaVencimiento']);
     const cantidad = parsePositiveInteger_(data.cantidad, 'cantidad');
     const fechaVencimiento = parseDate_(data.fechaVencimiento, 'fechaVencimiento');
-    return [fecha, producto, responsable, turno, cantidad, fechaVencimiento];
+    return [fecha, producto, responsable, turno, cantidad, fechaVencimiento, price, calculateLossCost_(price, cantidad)];
   }
 
-  return [fecha, producto, responsable, turno];
+  return [fecha, producto, responsable, turno, price, calculateLossCost_(price, 1)];
 }
 
 function resolveModule_(rawValue) {
@@ -324,17 +409,17 @@ function ensureHeaders_(sheet, expected) {
     return;
   }
 
-  const current = sheet.getRange(1, 1, 1, expected.length).getValues()[0].map(normalizeText_);
-  const baseHeaders = CONFIG.headers.default;
-  const currentBaseIsValid = baseHeaders.every(function (header, index) {
-    return normalizeText_(header) === current[index];
-  });
+  const width = Math.max(sheet.getLastColumn(), expected.length);
+  const current = sheet.getRange(1, 1, 1, width).getValues()[0].map(normalizeText_);
   const fullHeadersAreValid = expected.every(function (header, index) {
     return normalizeText_(header) === current[index];
   });
+  const existingHeadersCanMigrate = current.slice(0, Math.min(current.length, expected.length)).every(function (header, index) {
+    return !header || normalizeText_(expected[index]) === header;
+  });
 
   if (fullHeadersAreValid) return;
-  if (currentBaseIsValid) {
+  if (existingHeadersCanMigrate) {
     sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
     sheet.setFrozenRows(1);
     return;
@@ -420,9 +505,12 @@ function setupSheets_() {
     return CONFIG.sheetNames[module.id];
   });
 
+  const prices = setupPriceSheet_();
+  updateAllPriceColumns_();
   const visualization = refreshVisualization_();
   return {
     modules: modules,
+    prices: prices,
     visualization: visualization,
   };
 }
@@ -440,17 +528,20 @@ function refreshVisualization_() {
     'OBSERVACIONES',
     'CANTIDAD',
     'FECHA VENCIMIENTO',
+    'PRECIO UNITARIO',
+    'COSTO PERDIDA',
   ];
 
   rewriteSheet_(registrosSheet, registrosHeaders, registros);
   if (registros.length) {
     registrosSheet.getRange(2, 1, registros.length, 1).setNumberFormat('dd/MM/yyyy');
     registrosSheet.getRange(2, 9, registros.length, 1).setNumberFormat('dd/MM/yyyy');
+    registrosSheet.getRange(2, 10, registros.length, 2).setNumberFormat('#,##0.00');
   }
 
   const resumenSheet = getSheet_(CONFIG.visualizationSheets.resumen);
   const resumen = buildSummaryRows_(registros);
-  rewriteSheet_(resumenSheet, ['INDICADOR', 'VALOR', 'TOTAL'], resumen);
+  rewriteSheet_(resumenSheet, ['INDICADOR', 'VALOR', 'TOTAL', 'COSTO TOTAL'], resumen);
 
   return {
     registrosSheet: CONFIG.visualizationSheets.registros,
@@ -487,35 +578,38 @@ function collectVisualizationRows_() {
 
 function normalizeVisualizationRow_(module, row) {
   if (module.id === 'servicio' || module.id === 'manipulacion') {
-    return [row[0], module.label, row[1], row[2], row[3], row[4], row[5], '', ''];
+    return [row[0], module.label, row[1], row[2], row[3], row[4], row[5], '', '', row[6], row[7]];
   }
 
   if (module.id === 'merma_pan') {
-    return [row[0], module.label, row[1], row[2], row[3], '', '', row[4], row[5]];
+    return [row[0], module.label, row[1], row[2], row[3], '', '', row[4], row[5], row[6], row[7]];
   }
 
-  return [row[0], module.label, row[1], row[2], row[3], '', '', '', ''];
+  return [row[0], module.label, row[1], row[2], row[3], '', '', '', '', row[4], row[5]];
 }
 
 function buildSummaryRows_(registros) {
-  const rows = [['TOTAL GENERAL', 'REGISTROS', registros.length]];
+  const rows = [['TOTAL GENERAL', 'REGISTROS', registros.length, sumCost_(registros)]];
   appendGroupedSummary_(rows, registros, 1, 'POR MODULO');
   appendGroupedSummary_(rows, registros, 3, 'POR RESPONSABLE');
   appendGroupedSummary_(rows, registros, 4, 'POR TURNO');
   appendGroupedSummary_(rows, registros, 5, 'POR INCIDENCIA');
+  appendGroupedSummary_(rows, registros, 2, 'POR PRODUCTO');
   return rows;
 }
 
 function appendGroupedSummary_(rows, registros, columnIndex, title) {
   const counts = {};
+  const costs = {};
   registros.forEach(function (row) {
     const value = String(row[columnIndex] || '').trim();
     if (!value) return;
     counts[value] = (counts[value] || 0) + 1;
+    costs[value] = (costs[value] || 0) + Number(row[10] || 0);
   });
 
   Object.keys(counts).sort().forEach(function (value) {
-    rows.push([title, value, counts[value]]);
+    rows.push([title, value, counts[value], costs[value] || '']);
   });
 }
 
@@ -535,4 +629,131 @@ function formatHeader_(sheet, columns) {
     .setBackground('#c06e32')
     .setFontColor('#ffffff');
   sheet.setFrozenRows(1);
+}
+function setupPrices_() {
+  const priceSheet = setupPriceSheet_();
+  const updatedRows = updateAllPriceColumns_();
+  const visualization = refreshVisualization_();
+  return {
+    priceSheet: priceSheet,
+    updatedRows: updatedRows,
+    visualization: visualization,
+  };
+}
+
+function setupPriceSheet_() {
+  const sheet = getSheet_(CONFIG.priceSheetName);
+  const headers = ['PRODUCTO', 'PRECIO X UND/KG'];
+  const existing = getPriceCatalogRows_(sheet);
+  const existingByProduct = {};
+  existing.forEach(function (row) {
+    existingByProduct[normalizeProductKey_(row.producto)] = true;
+  });
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  const missingRows = PRICE_CATALOG
+    .filter(function (item) { return !existingByProduct[normalizeProductKey_(item.producto)]; })
+    .map(function (item) { return [item.producto, item.precio]; });
+
+  if (missingRows.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, missingRows.length, headers.length).setValues(missingRows);
+  }
+
+  formatHeader_(sheet, headers.length);
+  if (sheet.getLastRow() > 1) {
+    sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).setNumberFormat('#,##0.00');
+  }
+  sheet.autoResizeColumns(1, headers.length);
+  return CONFIG.priceSheetName;
+}
+
+function updateAllPriceColumns_() {
+  let updatedRows = 0;
+  CATALOGS.modules.forEach(function (module) {
+    const sheet = getSheet_(CONFIG.sheetNames[module.id]);
+    const headers = CONFIG.headers[module.id] || CONFIG.headers.default;
+    ensureHeaders_(sheet, headers);
+
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return;
+
+    const productColumn = 2;
+    const quantityColumn = module.id === 'merma_pan' ? 5 : null;
+    const priceColumn = headers.indexOf('PRECIO UNITARIO') + 1;
+    const rowCount = lastRow - 1;
+    const values = sheet.getRange(2, 1, rowCount, headers.length).getValues();
+    const priceValues = values.map(function (row) {
+      const price = findProductPrice_(row[productColumn - 1]);
+      const quantity = quantityColumn ? Number(row[quantityColumn - 1] || 0) : 1;
+      return [price, calculateLossCost_(price, quantity || 1)];
+    });
+
+    sheet.getRange(2, priceColumn, rowCount, 2).setValues(priceValues);
+    formatPriceColumns_(sheet, headers);
+    updatedRows += rowCount;
+  });
+  return updatedRows;
+}
+
+function findProductPrice_(producto) {
+  const rows = getPriceCatalogRows_();
+  const keys = getProductLookupKeys_(producto);
+  const match = rows.find(function (row) {
+    const priceKey = normalizeProductKey_(row.producto);
+    return keys.indexOf(priceKey) !== -1;
+  });
+  return match ? match.precio : '';
+}
+
+function getPriceCatalogRows_(sheet) {
+  const priceSheet = sheet || getSheet_(CONFIG.priceSheetName);
+  if (priceSheet.getLastRow() < 2) return [];
+
+  const values = priceSheet.getRange(2, 1, priceSheet.getLastRow() - 1, 2).getValues();
+  return values
+    .map(function (row) {
+      return {
+        producto: String(row[0] || '').trim(),
+        precio: parsePriceValue_(row[1]),
+      };
+    })
+    .filter(function (row) { return row.producto && row.precio !== ''; });
+}
+
+function getProductLookupKeys_(producto) {
+  const value = String(producto || '').trim();
+  const withoutCode = value.replace(/^[A-Z]+\d+\s+/, '');
+  const withoutUnit = withoutCode.replace(/\s+(KG|UND|ML|G)$/i, '').trim();
+  return [value, withoutCode, withoutUnit]
+    .map(normalizeProductKey_)
+    .filter(function (item, index, values) { return item && values.indexOf(item) === index; });
+}
+
+function normalizeProductKey_(value) {
+  return normalizeText_(value).replace(/\s+/g, ' ');
+}
+
+function parsePriceValue_(value) {
+  if (value === '' || value === null || value === undefined) return '';
+  const parsed = Number(String(value).replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : '';
+}
+
+function calculateLossCost_(price, quantity) {
+  if (price === '' || price === null || price === undefined) return '';
+  const qty = Number(quantity || 1);
+  return Number(price) * (Number.isFinite(qty) && qty > 0 ? qty : 1);
+}
+
+function formatPriceColumns_(sheet, headers) {
+  const priceColumn = headers.indexOf('PRECIO UNITARIO') + 1;
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2 || !priceColumn) return;
+  sheet.getRange(2, priceColumn, lastRow - 1, 2).setNumberFormat('#,##0.00');
+}
+
+function sumCost_(rows) {
+  return rows.reduce(function (total, row) {
+    return total + Number(row[10] || 0);
+  }, 0);
 }
