@@ -654,7 +654,7 @@ function rewriteSheet_(sheet, headers, rows) {
     sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
   }
   formatHeader_(sheet, headers.length);
-  sheet.autoResizeColumns(1, headers.length);
+  safeAutoResizeColumns_(sheet, headers.length);
 }
 
 function formatHeader_(sheet, columns) {
@@ -663,6 +663,16 @@ function formatHeader_(sheet, columns) {
     .setBackground('#c06e32')
     .setFontColor('#ffffff');
   sheet.setFrozenRows(1);
+}
+
+function safeAutoResizeColumns_(sheet, columns) {
+  try {
+    for (let column = 1; column <= columns; column += 1) {
+      sheet.autoResizeColumn(column);
+    }
+  } catch (error) {
+    Logger.log('No se pudieron autoajustar columnas en ' + sheet.getName() + ': ' + error);
+  }
 }
 function setupPrices_() {
   const priceSheet = setupPriceSheet_();
@@ -704,7 +714,7 @@ function setupPriceSheet_() {
   if (sheet.getLastRow() > 1) {
     sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).setNumberFormat('#,##0.00');
   }
-  sheet.autoResizeColumns(1, headers.length);
+  safeAutoResizeColumns_(sheet, headers.length);
   return CONFIG.priceSheetName;
 }
 
