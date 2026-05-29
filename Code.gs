@@ -1,3 +1,5 @@
+const SCRIPT_VERSION = '2026-05-29-costos-sin-formato';
+
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
   spreadsheetId: '1NUUJ0i9h1Y0pQFfVQyo8DEdaeZgsN-_PoMo-Fekt72E',
@@ -305,6 +307,9 @@ const PRICE_CATALOG = [
 function doGet(e) {
   try {
     const action = String((e && e.parameter && e.parameter.action) || 'ping').toLowerCase();
+    if (action === 'version') {
+      return jsonResponse_(true, { version: SCRIPT_VERSION }, 'Version activa.');
+    }
     if (action === 'getcatalogs') {
       return jsonResponse_(true, CATALOGS, 'Catalogos sincronizados.');
     }
@@ -362,11 +367,6 @@ function guardarIncidencia_(payload) {
   const targetRow = sheet.getLastRow() + 1;
   sheet.getRange(targetRow, 1, 1, row.length).setValues([row]);
   try {
-    sheet.getRange(targetRow, 1).setNumberFormat('dd/MM/yyyy');
-    if (module.id === 'merma_pan') {
-      sheet.getRange(targetRow, 6).setNumberFormat('dd/MM/yyyy');
-    }
-    formatPriceColumns_(sheet, headers);
   } catch (error) {
     Logger.log('No se pudo aplicar formato de fecha: ' + error);
   }
@@ -431,7 +431,6 @@ function getSpreadsheet_() {
 function ensureHeaders_(sheet, expected) {
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
-    sheet.setFrozenRows(1);
     return;
   }
 
@@ -447,7 +446,6 @@ function ensureHeaders_(sheet, expected) {
   if (fullHeadersAreValid) return;
   if (existingHeadersCanMigrate) {
     sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
-    sheet.setFrozenRows(1);
     return;
   }
 
@@ -560,16 +558,12 @@ function refreshVisualization_() {
 
   rewriteSheet_(registrosSheet, registrosHeaders, registros);
   if (registros.length) {
-    registrosSheet.getRange(2, 1, registros.length, 1).setNumberFormat('dd/MM/yyyy');
-    registrosSheet.getRange(2, 9, registros.length, 1).setNumberFormat('dd/MM/yyyy');
-    registrosSheet.getRange(2, 10, registros.length, 2).setNumberFormat('#,##0.00');
   }
 
   const resumenSheet = getSheet_(CONFIG.visualizationSheets.resumen);
   const resumen = buildSummaryRows_(registros);
   rewriteSheet_(resumenSheet, ['INDICADOR', 'VALOR', 'TOTAL', 'COSTO TOTAL'], resumen);
   if (resumen.length) {
-    resumenSheet.getRange(2, 4, resumen.length, 1).setNumberFormat('#,##0.00');
   }
 
   return {
@@ -657,11 +651,7 @@ function rewriteSheet_(sheet, headers, rows) {
 }
 
 function formatHeader_(sheet, columns) {
-  sheet.getRange(1, 1, 1, columns)
-    .setFontWeight('bold')
-    .setBackground('#c06e32')
-    .setFontColor('#ffffff');
-  sheet.setFrozenRows(1);
+  // Sin formato visual: evita errores de acciones de columna en Apps Script.
 }
 
 function setupPrices_() {
@@ -702,7 +692,6 @@ function setupPriceSheet_() {
 
   formatHeader_(sheet, headers.length);
   if (sheet.getLastRow() > 1) {
-    sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).setNumberFormat('#,##0.00');
   }
   return CONFIG.priceSheetName;
 }
@@ -729,7 +718,6 @@ function updateAllPriceColumns_() {
     });
 
     sheet.getRange(2, priceColumn, rowCount, 2).setValues(priceValues);
-    formatPriceColumns_(sheet, headers);
     updatedRows += rowCount;
   });
   return updatedRows;
@@ -786,12 +774,6 @@ function calculateLossCost_(price, quantity) {
   return Number(price) * (Number.isFinite(qty) && qty > 0 ? qty : 1);
 }
 
-function formatPriceColumns_(sheet, headers) {
-  const priceColumn = headers.indexOf('PRECIO UNITARIO') + 1;
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 2 || !priceColumn) return;
-  sheet.getRange(2, priceColumn, lastRow - 1, 2).setNumberFormat('#,##0.00');
-}
 
 function sumCost_(rows) {
   return rows.reduce(function (total, row) {
