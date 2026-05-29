@@ -14,6 +14,10 @@ const CONFIG = {
     desperdicio: 'DESPERDICIO PERECEDERO (VEG)',
     merma_pan: 'MERMA DE PAN (COCINA)',
   },
+  visualizationSheets: {
+    registros: 'VISUALIZACION REGISTROS',
+    resumen: 'RESUMEN REGISTROS',
+  },
 };
 
 const CATALOGS = {
@@ -199,6 +203,14 @@ function doGet(e) {
     if (action === 'getcatalogs') {
       return jsonResponse_(true, CATALOGS, 'Catalogos sincronizados.');
     }
+    if (action === 'setupsheets') {
+      const result = setupSheets_();
+      return jsonResponse_(true, result, 'Sheets de registros y visualizacion creados.');
+    }
+    if (action === 'refreshvisualization') {
+      const result = refreshVisualization_();
+      return jsonResponse_(true, result, 'Visualizacion actualizada.');
+    }
     if (action === 'ping') {
       return jsonResponse_(true, { ok: true }, 'Servicio disponible.');
     }
@@ -248,6 +260,12 @@ function guardarIncidencia_(payload) {
     Logger.log('No se pudo aplicar formato de fecha: ' + error);
   }
 
+  try {
+    refreshVisualization_();
+  } catch (error) {
+    Logger.log('No se pudo actualizar la visualizacion: ' + error);
+  }
+
   return {
     sheet: module.sheetName,
     rowInserted: targetRow,
@@ -288,12 +306,15 @@ function resolveModule_(rawValue) {
 }
 
 function getSheet_(sheetName) {
+  const spreadsheet = getSpreadsheet_();
+  return spreadsheet.getSheetByName(sheetName) || spreadsheet.insertSheet(sheetName);
+}
+
+function getSpreadsheet_() {
   if (CONFIG.spreadsheetId === 'REEMPLAZAR_CON_ID_DEL_GOOGLE_SHEET') {
     throw new Error('Configura CONFIG.spreadsheetId en Code.gs antes de probar envios.');
   }
-
-  const spreadsheet = SpreadsheetApp.openById(CONFIG.spreadsheetId);
-  return spreadsheet.getSheetByName(sheetName) || spreadsheet.insertSheet(sheetName);
+  return SpreadsheetApp.openById(CONFIG.spreadsheetId);
 }
 
 function ensureHeaders_(sheet, expected) {
@@ -389,4 +410,129 @@ function normalizeText_(value) {
 
 function normalizeError_(error) {
   return String(error && error.message ? error.message : error || 'Error interno de Apps Script.');
+}
+function setupSheets_() {
+  const modules = CATALOGS.modules.map(function (module) {
+    const sheet = getSheet_(CONFIG.sheetNames[module.id]);
+    const headers = CONFIG.headers[module.id] || CONFIG.headers.default;
+    ensureHeaders_(sheet, headers);
+    formatHeader_(sheet, headers.length);
+    return CONFIG.sheetNames[module.id];
+  });
+
+  const visualization = refreshVisualization_();
+  return {
+    modules: modules,
+    visualization: visualization,
+  };
+}
+
+function refreshVisualization_() {
+  const registros = collectVisualizationRows_();
+  const registrosSheet = getSheet_(CONFIG.visualizationSheets.registros);
+  const registrosHeaders = [
+    'FECHA',
+    'MODULO',
+    'PRODUCTO',
+    'RESPONSABLE',
+    'TURNO',
+    'LISTA DE INCIDENCIAS',
+    'OBSERVACIONES',
+    'CANTIDAD',
+    'FECHA VENCIMIENTO',
+  ];
+
+  rewriteSheet_(registrosSheet, registrosHeaders, registros);
+  if (registros.length) {
+    registrosSheet.getRange(2, 1, registros.length, 1).setNumberFormat('dd/MM/yyyy');
+    registrosSheet.getRange(2, 9, registros.length, 1).setNumberFormat('dd/MM/yyyy');
+  }
+
+  const resumenSheet = getSheet_(CONFIG.visualizationSheets.resumen);
+  const resumen = buildSummaryRows_(registros);
+  rewriteSheet_(resumenSheet, ['INDICADOR', 'VALOR', 'TOTAL'], resumen);
+
+  return {
+    registrosSheet: CONFIG.visualizationSheets.registros,
+    resumenSheet: CONFIG.visualizationSheets.resumen,
+    totalRegistros: registros.length,
+  };
+}
+
+function collectVisualizationRows_() {
+  const rows = [];
+  CATALOGS.modules.forEach(function (module) {
+    const sheetName = CONFIG.sheetNames[module.id];
+    const sheet = getSheet_(sheetName);
+    const headers = CONFIG.headers[module.id] || CONFIG.headers.default;
+    ensureHeaders_(sheet, headers);
+
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return;
+
+    const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+    values.forEach(function (row) {
+      if (row.every(function (cell) { return cell === ''; })) return;
+      rows.push(normalizeVisualizationRow_(module, row));
+    });
+  });
+
+  rows.sort(function (a, b) {
+    const dateA = a[0] instanceof Date ? a[0].getTime() : 0;
+    const dateB = b[0] instanceof Date ? b[0].getTime() : 0;
+    return dateB - dateA;
+  });
+  return rows;
+}
+
+function normalizeVisualizationRow_(module, row) {
+  if (module.id === 'servicio' || module.id === 'manipulacion') {
+    return [row[0], module.label, row[1], row[2], row[3], row[4], row[5], '', ''];
+  }
+
+  if (module.id === 'merma_pan') {
+    return [row[0], module.label, row[1], row[2], row[3], '', '', row[4], row[5]];
+  }
+
+  return [row[0], module.label, row[1], row[2], row[3], '', '', '', ''];
+}
+
+function buildSummaryRows_(registros) {
+  const rows = [['TOTAL GENERAL', 'REGISTROS', registros.length]];
+  appendGroupedSummary_(rows, registros, 1, 'POR MODULO');
+  appendGroupedSummary_(rows, registros, 3, 'POR RESPONSABLE');
+  appendGroupedSummary_(rows, registros, 4, 'POR TURNO');
+  appendGroupedSummary_(rows, registros, 5, 'POR INCIDENCIA');
+  return rows;
+}
+
+function appendGroupedSummary_(rows, registros, columnIndex, title) {
+  const counts = {};
+  registros.forEach(function (row) {
+    const value = String(row[columnIndex] || '').trim();
+    if (!value) return;
+    counts[value] = (counts[value] || 0) + 1;
+  });
+
+  Object.keys(counts).sort().forEach(function (value) {
+    rows.push([title, value, counts[value]]);
+  });
+}
+
+function rewriteSheet_(sheet, headers, rows) {
+  sheet.clear();
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  if (rows.length) {
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+  formatHeader_(sheet, headers.length);
+  sheet.autoResizeColumns(1, headers.length);
+}
+
+function formatHeader_(sheet, columns) {
+  sheet.getRange(1, 1, 1, columns)
+    .setFontWeight('bold')
+    .setBackground('#c06e32')
+    .setFontColor('#ffffff');
+  sheet.setFrozenRows(1);
 }

@@ -39,6 +39,29 @@ El tercer nombre esta abreviado porque el archivo Excel inicial limita los
 nombres de pestañas a 31 caracteres. Si las pestanas en Google Sheets fueron
 renombradas, actualiza `CONFIG.sheetNames` en `Code.gs`.
 
+
+## Visualizacion en Google Sheets
+
+`Code.gs` puede crear y mantener dos pestanas para revisar los registros:
+
+- `VISUALIZACION REGISTROS`: consolida todos los modulos en una sola tabla.
+- `RESUMEN REGISTROS`: muestra conteos por modulo, responsable, turno e incidencia.
+
+Luego de desplegar Apps Script, abre la URL del Web App con esta accion para crear
+las pestanas y encabezados:
+
+```text
+https://script.google.com/macros/s/.../exec?action=setupSheets
+```
+
+Tambien puedes refrescar la visualizacion manualmente con:
+
+```text
+https://script.google.com/macros/s/.../exec?action=refreshVisualization
+```
+
+Cada nuevo registro intenta actualizar automaticamente estas pestanas.
+
 ## Despliegue
 
 1. Abre tu proyecto de Google Apps Script y reemplaza `Code.gs` con el archivo
