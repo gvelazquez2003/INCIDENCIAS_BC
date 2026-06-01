@@ -42,11 +42,12 @@ FECHA | PRODUCTO | RESPONSABLE | TURNO | PRECIO UNITARIO | COSTO PERDIDA
 La hoja `CONSUMO INTERNO` debe tener estos encabezados:
 
 ```text
-FECHA | PRODUCTO | RESPONSABLE | TURNO | OBSERVACIONES
+FECHA | PRODUCTO | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
 ```
 
-El backend escribe estas cinco columnas. Este modulo no usa lista de
-incidencias ni columnas de precio o costo perdido.
+El formulario captura las primeras cinco columnas y no usa lista de incidencias.
+El backend completa `PRECIO UNITARIO` desde `PRECIOS PRODUCTOS` y calcula
+`COSTO PERDIDA` automaticamente.
 
 El tercer nombre esta abreviado porque el archivo Excel inicial limita los
 nombres de pestañas a 31 caracteres. Si las pestanas en Google Sheets fueron

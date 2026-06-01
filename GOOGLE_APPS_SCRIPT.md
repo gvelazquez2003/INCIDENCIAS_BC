@@ -25,11 +25,12 @@ nuevamente.
 La pestana `CONSUMO INTERNO` debe existir con estos encabezados:
 
 ```text
-FECHA | PRODUCTO | RESPONSABLE | TURNO | OBSERVACIONES
+FECHA | PRODUCTO | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
 ```
 
-El envio completa estas cinco columnas. `CONSUMO INTERNO` no usa lista de
-incidencias ni columnas de precio o costo perdido.
+El formulario envia las primeras cinco columnas y no usa lista de incidencias.
+`Code.gs` completa `PRECIO UNITARIO` desde `PRECIOS PRODUCTOS` y calcula
+`COSTO PERDIDA` automaticamente.
 
 Si las pestanas no mantienen los nombres de la plantilla, modifica
 `CONFIG.sheetNames` en `Code.gs` para que coincida exactamente con el Google
