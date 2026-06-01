@@ -29,6 +29,20 @@ const FALLBACK_CATALOGS = {
       ],
     },
     {
+      id: 'consumo',
+      label: 'CONSUMO INTERNO',
+      description: 'Producto destinado al consumo interno del equipo.',
+      extraFields: [
+        {
+          name: 'observaciones',
+          label: 'Observaciones',
+          type: 'textarea',
+          placeholder: 'Breve explicacion',
+          required: false,
+        },
+      ],
+    },
+    {
       id: 'manipulacion',
       label: 'MALA MANIPULACION (COCINA)',
       description: 'Producto quemado, mal armado o error en cambios.',
@@ -347,7 +361,6 @@ function setupForm() {
       turno: String(formData.get('turno') || '').trim(),
       ...readExtraPayload(formData, module),
     };
-
     if (!payload.fecha || !payload.producto || !payload.responsable || !payload.turno) {
       showToast('Completa todos los campos obligatorios.', 'error');
       return;

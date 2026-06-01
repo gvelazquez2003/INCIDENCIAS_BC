@@ -6,11 +6,13 @@ Frontend de registro de incidencias para Pan de Tata, basado visualmente en
 ## Modulos actuales
 
 - `ERROR EN SERVICIO (BARRA)`
+- `CONSUMO INTERNO`
 - `MALA MANIPULACION (COCINA)`
 - `DESPERDICIO PERECEDERO (VEGETALES)`
+- `MERMA DE PAN (COCINA)`
 
-Los campos capturados actualmente son los presentes en el Google Form original:
-`FECHA`, `PRODUCTO`, `RESPONSABLE` y `TURNO`.
+Los modulos originales capturan `FECHA`, `PRODUCTO`, `RESPONSABLE` y `TURNO`.
+`CONSUMO INTERNO` tambien captura `OBSERVACIONES`.
 
 ## Archivos
 
@@ -26,14 +28,25 @@ Los campos capturados actualmente son los presentes en el Google Form original:
 El backend escribe en pestañas del spreadsheet con estos nombres:
 
 - `ERROR EN SERVICIO (BARRA)`
+- `CONSUMO INTERNO`
 - `MALA MANIPULACION (COCINA)`
 - `DESPERDICIO PERECEDERO (VEG)`
+- `MERMA DE PAN (COCINA)`
 
 Cada hoja debe tener los encabezados en este orden:
 
 ```text
-FECHA | PRODUCTO | RESPONSABLE | TURNO
+FECHA | PRODUCTO | RESPONSABLE | TURNO | PRECIO UNITARIO | COSTO PERDIDA
 ```
+
+La hoja `CONSUMO INTERNO` debe tener estos encabezados:
+
+```text
+FECHA | PRODUCTO | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+```
+
+El backend escribe las siete columnas y calcula `PRECIO UNITARIO` y
+`COSTO PERDIDA` con el catalogo de precios configurado.
 
 El tercer nombre esta abreviado porque el archivo Excel inicial limita los
 nombres de pestañas a 31 caracteres. Si las pestanas en Google Sheets fueron

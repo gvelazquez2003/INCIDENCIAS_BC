@@ -1,4 +1,4 @@
-const SCRIPT_VERSION = '2026-05-29-costos-sin-formato';
+const SCRIPT_VERSION = '2026-06-01-consumo-interno';
 
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
@@ -7,11 +7,13 @@ const CONFIG = {
   headers: {
     default: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     servicio: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    consumo: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     manipulacion: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     merma_pan: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'CANTIDAD', 'FECHA DE VENCIMIENTO DEL PAQUETE', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
   },
   sheetNames: {
     servicio: 'ERROR EN SERVICIO (BARRA)',
+    consumo: 'CONSUMO INTERNO',
     manipulacion: 'MALA MANIPULACION (COCINA)',
     desperdicio: 'DESPERDICIO PERECEDERO (VEG)',
     merma_pan: 'MERMA DE PAN (COCINA)',
@@ -44,6 +46,20 @@ const CATALOGS = {
           label: 'Observaciones',
           type: 'textarea',
           placeholder: 'Breve expicacion',
+          required: false,
+        },
+      ],
+    },
+    {
+      id: 'consumo',
+      label: 'CONSUMO INTERNO',
+      description: 'Producto destinado al consumo interno del equipo.',
+      extraFields: [
+        {
+          name: 'observaciones',
+          label: 'Observaciones',
+          type: 'textarea',
+          placeholder: 'Breve explicacion',
           required: false,
         },
       ],
@@ -400,6 +416,10 @@ function buildRow_(module, data, fecha, producto, responsable, turno, price) {
     return [fecha, producto, responsable, turno, cantidad, fechaVencimiento, price, calculateLossCost_(price, cantidad)];
   }
 
+  if (module.id === 'consumo') {
+    return [fecha, producto, responsable, turno, String(data.observaciones || '').trim(), price, calculateLossCost_(price, 1)];
+  }
+
   return [fecha, producto, responsable, turno, price, calculateLossCost_(price, 1)];
 }
 
@@ -609,6 +629,10 @@ function normalizeVisualizationRow_(module, row) {
     return [row[0], module.label, row[1], row[2], row[3], '', '', row[4], row[5], row[6], row[7]];
   }
 
+  if (module.id === 'consumo') {
+    return [row[0], module.label, row[1], row[2], row[3], '', row[4], '', '', row[5], row[6]];
+  }
+
   return [row[0], module.label, row[1], row[2], row[3], '', '', '', '', row[4], row[5]];
 }
 
@@ -664,6 +688,7 @@ function setupPrices_() {
     totalCostoPerdido: visualization.totalCostoPerdido,
     modulesUpdated: [
       CONFIG.sheetNames.servicio,
+      CONFIG.sheetNames.consumo,
       CONFIG.sheetNames.manipulacion,
       CONFIG.sheetNames.desperdicio,
       CONFIG.sheetNames.merma_pan,
