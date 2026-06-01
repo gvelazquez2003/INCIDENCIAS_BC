@@ -13,6 +13,7 @@ Frontend de registro de incidencias para Pan de Tata, basado visualmente en
 
 Los modulos originales capturan `FECHA`, `PRODUCTO`, `RESPONSABLE` y `TURNO`.
 `CONSUMO INTERNO` tambien captura `OBSERVACIONES`.
+`DESPERDICIO PERECEDERO (VEGETALES)` tambien captura `CANTIDAD`.
 
 ## Archivos
 
@@ -48,6 +49,14 @@ FECHA | PRODUCTO | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO
 El formulario captura las primeras cinco columnas y no usa lista de incidencias.
 El backend completa `PRECIO UNITARIO` desde `PRECIOS PRODUCTOS` y calcula
 `COSTO PERDIDA` automaticamente.
+
+La hoja `DESPERDICIO PERECEDERO (VEG)` debe tener estos encabezados:
+
+```text
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | PRECIO UNITARIO | COSTO PERDIDA
+```
+
+El costo perdido se calcula multiplicando el precio unitario por la cantidad.
 
 El tercer nombre esta abreviado porque el archivo Excel inicial limita los
 nombres de pestañas a 31 caracteres. Si las pestanas en Google Sheets fueron

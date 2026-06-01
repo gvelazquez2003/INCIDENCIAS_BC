@@ -32,6 +32,14 @@ El formulario envia las primeras cinco columnas y no usa lista de incidencias.
 `Code.gs` completa `PRECIO UNITARIO` desde `PRECIOS PRODUCTOS` y calcula
 `COSTO PERDIDA` automaticamente.
 
+La pestana `DESPERDICIO PERECEDERO (VEG)` debe incluir cantidad:
+
+```text
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | PRECIO UNITARIO | COSTO PERDIDA
+```
+
+El costo perdido se calcula multiplicando el precio unitario por la cantidad.
+
 Si las pestanas no mantienen los nombres de la plantilla, modifica
 `CONFIG.sheetNames` en `Code.gs` para que coincida exactamente con el Google
 Sheet.

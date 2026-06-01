@@ -70,6 +70,17 @@ const FALLBACK_CATALOGS = {
       label: 'DESPERDICIO PERECEDERO (VEGETALES)',
       description: 'Vegetales marchitos o mayugados.',
       productCatalog: 'productosDesperdicio',
+      extraFields: [
+        {
+          name: 'cantidad',
+          label: 'Cantidad *',
+          type: 'number',
+          placeholder: '0',
+          min: '0.01',
+          step: '0.01',
+          required: true,
+        },
+      ],
     },
     {
       id: 'merma_pan',
@@ -147,6 +158,9 @@ const FALLBACK_CATALOGS = {
     'MDMP0284 PEPINILLOS KG',
     'MDMP0324 CILANTRO KG',
     'MDMP0379 LECHUGA RIZADA KG',
+    'PEPINILLOS ENCURTIDOS',
+    'CEBOLLAS ENCURTIDAS',
+    'SALSA DE PERNIL',
   ],
   productos: [
     'BAGEL INTEGRAL DE POLLO AHUMADO',
@@ -419,8 +433,9 @@ function validateExtraFields(payload, module) {
 
   if (payload.cantidad) {
     const quantity = Number(payload.cantidad);
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-      showToast('La cantidad debe ser un numero entero mayor a cero.', 'error');
+    const quantityMustBeInteger = module.id === 'merma_pan';
+    if (!Number.isFinite(quantity) || quantity <= 0 || (quantityMustBeInteger && !Number.isInteger(quantity))) {
+      showToast(quantityMustBeInteger ? 'La cantidad debe ser un numero entero mayor a cero.' : 'La cantidad debe ser un numero mayor a cero.', 'error');
       return false;
     }
   }

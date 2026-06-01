@@ -1,4 +1,4 @@
-const SCRIPT_VERSION = '2026-06-01-consumo-interno-precios-v2';
+const SCRIPT_VERSION = '2026-06-01-desperdicio-cantidades';
 
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
@@ -9,6 +9,7 @@ const CONFIG = {
     servicio: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     consumo: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     manipulacion: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    desperdicio: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     merma_pan: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'CANTIDAD', 'FECHA DE VENCIMIENTO DEL PAQUETE', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
   },
   sheetNames: {
@@ -92,6 +93,17 @@ const CATALOGS = {
       label: 'DESPERDICIO PERECEDERO (VEGETALES)',
       description: 'Vegetales marchitos o mayugados.',
       productCatalog: 'productosDesperdicio',
+      extraFields: [
+        {
+          name: 'cantidad',
+          label: 'Cantidad *',
+          type: 'number',
+          placeholder: '0',
+          min: '0.01',
+          step: '0.01',
+          required: true,
+        },
+      ],
     },
     {
       id: 'merma_pan',
@@ -169,6 +181,9 @@ const CATALOGS = {
     'MDMP0284 PEPINILLOS KG',
     'MDMP0324 CILANTRO KG',
     'MDMP0379 LECHUGA RIZADA KG',
+    'PEPINILLOS ENCURTIDOS',
+    'CEBOLLAS ENCURTIDAS',
+    'SALSA DE PERNIL',
   ],  productos: [
     'BAGEL INTEGRAL DE POLLO AHUMADO',
     'BAGEL DE PROSCIUTTO',
@@ -420,6 +435,12 @@ function buildRow_(module, data, fecha, producto, responsable, turno, price) {
     return [fecha, producto, responsable, turno, String(data.observaciones || '').trim(), price, calculateLossCost_(price, 1)];
   }
 
+  if (module.id === 'desperdicio') {
+    validateRequired_(data, ['cantidad']);
+    const cantidad = parsePositiveNumber_(data.cantidad, 'cantidad');
+    return [fecha, producto, cantidad, responsable, turno, price, calculateLossCost_(price, cantidad)];
+  }
+
   return [fecha, producto, responsable, turno, price, calculateLossCost_(price, 1)];
 }
 
@@ -491,6 +512,14 @@ function parsePositiveInteger_(rawValue, fieldName) {
   const value = Number(rawValue);
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error('El campo ' + fieldName + ' debe ser un numero entero mayor a cero.');
+  }
+  return value;
+}
+
+function parsePositiveNumber_(rawValue, fieldName) {
+  const value = Number(String(rawValue).replace(',', '.'));
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error('El campo ' + fieldName + ' debe ser un numero mayor a cero.');
   }
   return value;
 }
@@ -633,6 +662,10 @@ function normalizeVisualizationRow_(module, row) {
     return [row[0], module.label, row[1], row[2], row[3], '', row[4], '', '', row[5], row[6]];
   }
 
+  if (module.id === 'desperdicio') {
+    return [row[0], module.label, row[1], row[3], row[4], '', '', row[2], '', row[5], row[6]];
+  }
+
   return [row[0], module.label, row[1], row[2], row[3], '', '', '', '', row[4], row[5]];
 }
 
@@ -732,7 +765,7 @@ function updateAllPriceColumns_() {
     if (lastRow < 2) return;
 
     const productColumn = 2;
-    const quantityColumn = module.id === 'merma_pan' ? 5 : null;
+    const quantityColumn = module.id === 'merma_pan' ? 5 : module.id === 'desperdicio' ? 3 : null;
     const priceColumn = headers.indexOf('PRECIO UNITARIO') + 1;
     if (!priceColumn) return;
     const rowCount = lastRow - 1;
