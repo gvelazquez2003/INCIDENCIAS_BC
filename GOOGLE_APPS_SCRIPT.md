@@ -40,6 +40,20 @@ FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | PRECIO UNITARIO | COSTO PERD
 
 El costo perdido se calcula multiplicando el precio unitario por la cantidad.
 
+Las pestanas `ERROR EN SERVICIO (BARRA)` y `MALA MANIPULACION (COCINA)` deben
+ubicar `CANTIDAD` a la derecha de `PRODUCTO`:
+
+```text
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | LISTA DE INCIDENCIAS | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+```
+
+La pestana `CONSUMO INTERNO` tambien debe ubicar `CANTIDAD` a la derecha de
+`PRODUCTO`:
+
+```text
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+```
+
 Si las pestanas no mantienen los nombres de la plantilla, modifica
 `CONFIG.sheetNames` en `Code.gs` para que coincida exactamente con el Google
 Sheet.

@@ -12,7 +12,8 @@ Frontend de registro de incidencias para Pan de Tata, basado visualmente en
 - `MERMA DE PAN (COCINA)`
 
 Los modulos originales capturan `FECHA`, `PRODUCTO`, `RESPONSABLE` y `TURNO`.
-`CONSUMO INTERNO` tambien captura `OBSERVACIONES`.
+`ERROR EN SERVICIO`, `CONSUMO INTERNO` y `MALA MANIPULACION` tambien capturan
+`CANTIDAD`. `CONSUMO INTERNO` captura `OBSERVACIONES`.
 `DESPERDICIO PERECEDERO (VEGETALES)` tambien captura `CANTIDAD`.
 
 ## Archivos
@@ -57,6 +58,19 @@ FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | PRECIO UNITARIO | COSTO PERD
 ```
 
 El costo perdido se calcula multiplicando el precio unitario por la cantidad.
+
+Las hojas `ERROR EN SERVICIO (BARRA)` y `MALA MANIPULACION (COCINA)` deben
+ubicar `CANTIDAD` a la derecha de `PRODUCTO`:
+
+```text
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | LISTA DE INCIDENCIAS | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+```
+
+La hoja `CONSUMO INTERNO` tambien ubica `CANTIDAD` a la derecha de `PRODUCTO`:
+
+```text
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+```
 
 El tercer nombre esta abreviado porque el archivo Excel inicial limita los
 nombres de pestañas a 31 caracteres. Si las pestanas en Google Sheets fueron

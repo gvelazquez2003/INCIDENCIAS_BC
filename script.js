@@ -12,6 +12,15 @@ const FALLBACK_CATALOGS = {
       incidenciasCatalog: 'incidenciasServicio',
       extraFields: [
         {
+          name: 'cantidad',
+          label: 'Cantidad *',
+          type: 'number',
+          placeholder: '0',
+          min: '0.01',
+          step: '0.01',
+          required: true,
+        },
+        {
           name: 'listaIncidencias',
           label: 'Lista de Incidencias *',
           type: 'select',
@@ -34,6 +43,15 @@ const FALLBACK_CATALOGS = {
       description: 'Producto destinado al consumo interno del equipo.',
       extraFields: [
         {
+          name: 'cantidad',
+          label: 'Cantidad *',
+          type: 'number',
+          placeholder: '0',
+          min: '0.01',
+          step: '0.01',
+          required: true,
+        },
+        {
           name: 'observaciones',
           label: 'Observaciones',
           type: 'textarea',
@@ -48,6 +66,15 @@ const FALLBACK_CATALOGS = {
       description: 'Producto quemado, mal armado o error en cambios.',
       incidenciasCatalog: 'incidenciasManipulacion',
       extraFields: [
+        {
+          name: 'cantidad',
+          label: 'Cantidad *',
+          type: 'number',
+          placeholder: '0',
+          min: '0.01',
+          step: '0.01',
+          required: true,
+        },
         {
           name: 'listaIncidencias',
           label: 'Lista de Incidencias *',

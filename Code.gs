@@ -1,4 +1,4 @@
-const SCRIPT_VERSION = '2026-06-01-desperdicio-cantidades';
+const SCRIPT_VERSION = '2026-06-01-cantidades-modulos';
 
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
@@ -6,9 +6,9 @@ const CONFIG = {
   timeZone: 'America/Caracas',
   headers: {
     default: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
-    servicio: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
-    consumo: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
-    manipulacion: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    servicio: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    consumo: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    manipulacion: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     desperdicio: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     merma_pan: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'CANTIDAD', 'FECHA DE VENCIMIENTO DEL PAQUETE', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
   },
@@ -35,6 +35,15 @@ const CATALOGS = {
       incidenciasCatalog: 'incidenciasServicio',
       extraFields: [
         {
+          name: 'cantidad',
+          label: 'Cantidad *',
+          type: 'number',
+          placeholder: '0',
+          min: '0.01',
+          step: '0.01',
+          required: true,
+        },
+        {
           name: 'listaIncidencias',
           label: 'Lista de Incidencias *',
           type: 'select',
@@ -57,6 +66,15 @@ const CATALOGS = {
       description: 'Producto destinado al consumo interno del equipo.',
       extraFields: [
         {
+          name: 'cantidad',
+          label: 'Cantidad *',
+          type: 'number',
+          placeholder: '0',
+          min: '0.01',
+          step: '0.01',
+          required: true,
+        },
+        {
           name: 'observaciones',
           label: 'Observaciones',
           type: 'textarea',
@@ -71,6 +89,15 @@ const CATALOGS = {
       description: 'Producto quemado, mal armado o error en cambios.',
       incidenciasCatalog: 'incidenciasManipulacion',
       extraFields: [
+        {
+          name: 'cantidad',
+          label: 'Cantidad *',
+          type: 'number',
+          placeholder: '0',
+          min: '0.01',
+          step: '0.01',
+          required: true,
+        },
         {
           name: 'listaIncidencias',
           label: 'Lista de Incidencias *',
@@ -417,11 +444,12 @@ function guardarIncidencia_(payload) {
 
 function buildRow_(module, data, fecha, producto, responsable, turno, price) {
   if (module.id === 'servicio' || module.id === 'manipulacion') {
-    validateRequired_(data, ['listaIncidencias']);
+    validateRequired_(data, ['cantidad', 'listaIncidencias']);
+    const cantidad = parsePositiveNumber_(data.cantidad, 'cantidad');
     const incidenciasCatalog = CATALOGS[module.incidenciasCatalog] || [];
     const listaIncidencias = requireCatalogValue_(data.listaIncidencias, incidenciasCatalog, 'listaIncidencias');
     const observaciones = String(data.observaciones || '').trim();
-    return [fecha, producto, responsable, turno, listaIncidencias, observaciones, price, calculateLossCost_(price, 1)];
+    return [fecha, producto, cantidad, responsable, turno, listaIncidencias, observaciones, price, calculateLossCost_(price, cantidad)];
   }
 
   if (module.id === 'merma_pan') {
@@ -432,7 +460,9 @@ function buildRow_(module, data, fecha, producto, responsable, turno, price) {
   }
 
   if (module.id === 'consumo') {
-    return [fecha, producto, responsable, turno, String(data.observaciones || '').trim(), price, calculateLossCost_(price, 1)];
+    validateRequired_(data, ['cantidad']);
+    const cantidad = parsePositiveNumber_(data.cantidad, 'cantidad');
+    return [fecha, producto, cantidad, responsable, turno, String(data.observaciones || '').trim(), price, calculateLossCost_(price, cantidad)];
   }
 
   if (module.id === 'desperdicio') {
@@ -651,7 +681,7 @@ function collectVisualizationRows_() {
 
 function normalizeVisualizationRow_(module, row) {
   if (module.id === 'servicio' || module.id === 'manipulacion') {
-    return [row[0], module.label, row[1], row[2], row[3], row[4], row[5], '', '', row[6], row[7]];
+    return [row[0], module.label, row[1], row[3], row[4], row[5], row[6], row[2], '', row[7], row[8]];
   }
 
   if (module.id === 'merma_pan') {
@@ -659,7 +689,7 @@ function normalizeVisualizationRow_(module, row) {
   }
 
   if (module.id === 'consumo') {
-    return [row[0], module.label, row[1], row[2], row[3], '', row[4], '', '', row[5], row[6]];
+    return [row[0], module.label, row[1], row[3], row[4], '', row[5], row[2], '', row[6], row[7]];
   }
 
   if (module.id === 'desperdicio') {
@@ -765,7 +795,7 @@ function updateAllPriceColumns_() {
     if (lastRow < 2) return;
 
     const productColumn = 2;
-    const quantityColumn = module.id === 'merma_pan' ? 5 : module.id === 'desperdicio' ? 3 : null;
+    const quantityColumn = module.id === 'merma_pan' ? 5 : module.id === 'desperdicio' || module.id === 'servicio' || module.id === 'consumo' || module.id === 'manipulacion' ? 3 : null;
     const priceColumn = headers.indexOf('PRECIO UNITARIO') + 1;
     if (!priceColumn) return;
     const rowCount = lastRow - 1;
