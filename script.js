@@ -386,19 +386,11 @@ function setupForm() {
       elements.form.reset();
       setToday();
     } catch (error) {
-      showToast(getSaveErrorMessage(error, module), 'error');
+      showToast(error.message || 'No se pudo guardar el registro.', 'error');
     } finally {
       setLoading(false);
     }
   });
-}
-
-function getSaveErrorMessage(error, module) {
-  const message = String(error && error.message || '');
-  if (module && module.id === 'consumo' && normalizeText(message) === 'TIPO DE INCIDENCIA NO VALIDO.') {
-    return 'El Apps Script publicado no incluye CONSUMO INTERNO. Despliega el Code.gs actualizado.';
-  }
-  return message || 'No se pudo guardar el registro.';
 }
 
 function readExtraPayload(formData, module) {

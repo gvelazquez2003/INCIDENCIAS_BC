@@ -1,4 +1,4 @@
-const SCRIPT_VERSION = '2026-06-01-consumo-interno';
+const SCRIPT_VERSION = '2026-06-01-consumo-interno-cinco-columnas';
 
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
@@ -7,7 +7,7 @@ const CONFIG = {
   headers: {
     default: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     servicio: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
-    consumo: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    consumo: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES'],
     manipulacion: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     merma_pan: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'CANTIDAD', 'FECHA DE VENCIMIENTO DEL PAQUETE', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
   },
@@ -375,7 +375,7 @@ function guardarIncidencia_(payload) {
   const turno = requireCatalogValue_(data.turno, CATALOGS.turnos, 'turno');
   const fecha = parseDate_(data.fecha, 'fecha');
   const sheet = getSheet_(module.sheetName);
-  const price = findProductPrice_(producto);
+  const price = module.id === 'consumo' ? '' : findProductPrice_(producto);
   const row = buildRow_(module, data, fecha, producto, responsable, turno, price);
   const headers = CONFIG.headers[module.id] || CONFIG.headers.default;
 
@@ -417,7 +417,7 @@ function buildRow_(module, data, fecha, producto, responsable, turno, price) {
   }
 
   if (module.id === 'consumo') {
-    return [fecha, producto, responsable, turno, String(data.observaciones || '').trim(), price, calculateLossCost_(price, 1)];
+    return [fecha, producto, responsable, turno, String(data.observaciones || '').trim()];
   }
 
   return [fecha, producto, responsable, turno, price, calculateLossCost_(price, 1)];
@@ -630,7 +630,7 @@ function normalizeVisualizationRow_(module, row) {
   }
 
   if (module.id === 'consumo') {
-    return [row[0], module.label, row[1], row[2], row[3], '', row[4], '', '', row[5], row[6]];
+    return [row[0], module.label, row[1], row[2], row[3], '', row[4], '', '', '', ''];
   }
 
   return [row[0], module.label, row[1], row[2], row[3], '', '', '', '', row[4], row[5]];
@@ -688,7 +688,6 @@ function setupPrices_() {
     totalCostoPerdido: visualization.totalCostoPerdido,
     modulesUpdated: [
       CONFIG.sheetNames.servicio,
-      CONFIG.sheetNames.consumo,
       CONFIG.sheetNames.manipulacion,
       CONFIG.sheetNames.desperdicio,
       CONFIG.sheetNames.merma_pan,
@@ -734,6 +733,7 @@ function updateAllPriceColumns_() {
     const productColumn = 2;
     const quantityColumn = module.id === 'merma_pan' ? 5 : null;
     const priceColumn = headers.indexOf('PRECIO UNITARIO') + 1;
+    if (!priceColumn) return;
     const rowCount = lastRow - 1;
     const values = sheet.getRange(2, 1, rowCount, headers.length).getValues();
     const priceValues = values.map(function (row) {
