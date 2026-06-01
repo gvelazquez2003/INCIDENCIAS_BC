@@ -107,6 +107,13 @@ const FALLBACK_CATALOGS = {
           step: '0.01',
           required: true,
         },
+        {
+          name: 'observaciones',
+          label: 'Observaciones',
+          type: 'textarea',
+          placeholder: 'Breve explicacion',
+          required: false,
+        },
       ],
     },
     {

@@ -1,4 +1,4 @@
-const SCRIPT_VERSION = '2026-06-01-cantidades-modulos';
+const SCRIPT_VERSION = '2026-06-01-desperdicio-observaciones';
 
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
@@ -9,7 +9,7 @@ const CONFIG = {
     servicio: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     consumo: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     manipulacion: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
-    desperdicio: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    desperdicio: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     merma_pan: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'CANTIDAD', 'FECHA DE VENCIMIENTO DEL PAQUETE', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
   },
   sheetNames: {
@@ -129,6 +129,13 @@ const CATALOGS = {
           min: '0.01',
           step: '0.01',
           required: true,
+        },
+        {
+          name: 'observaciones',
+          label: 'Observaciones',
+          type: 'textarea',
+          placeholder: 'Breve explicacion',
+          required: false,
         },
       ],
     },
@@ -468,7 +475,8 @@ function buildRow_(module, data, fecha, producto, responsable, turno, price) {
   if (module.id === 'desperdicio') {
     validateRequired_(data, ['cantidad']);
     const cantidad = parsePositiveNumber_(data.cantidad, 'cantidad');
-    return [fecha, producto, cantidad, responsable, turno, price, calculateLossCost_(price, cantidad)];
+    const observaciones = String(data.observaciones || '').trim();
+    return [fecha, producto, cantidad, responsable, turno, observaciones, price, calculateLossCost_(price, cantidad)];
   }
 
   return [fecha, producto, responsable, turno, price, calculateLossCost_(price, 1)];
@@ -693,7 +701,7 @@ function normalizeVisualizationRow_(module, row) {
   }
 
   if (module.id === 'desperdicio') {
-    return [row[0], module.label, row[1], row[3], row[4], '', '', row[2], '', row[5], row[6]];
+    return [row[0], module.label, row[1], row[3], row[4], '', row[5], row[2], '', row[6], row[7]];
   }
 
   return [row[0], module.label, row[1], row[2], row[3], '', '', '', '', row[4], row[5]];

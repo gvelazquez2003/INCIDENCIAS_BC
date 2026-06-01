@@ -14,7 +14,8 @@ Frontend de registro de incidencias para Pan de Tata, basado visualmente en
 Los modulos originales capturan `FECHA`, `PRODUCTO`, `RESPONSABLE` y `TURNO`.
 `ERROR EN SERVICIO`, `CONSUMO INTERNO` y `MALA MANIPULACION` tambien capturan
 `CANTIDAD`. `CONSUMO INTERNO` captura `OBSERVACIONES`.
-`DESPERDICIO PERECEDERO (VEGETALES)` tambien captura `CANTIDAD`.
+`DESPERDICIO PERECEDERO (VEGETALES)` tambien captura `CANTIDAD` y
+`OBSERVACIONES`.
 
 ## Archivos
 
@@ -54,7 +55,7 @@ El backend completa `PRECIO UNITARIO` desde `PRECIOS PRODUCTOS` y calcula
 La hoja `DESPERDICIO PERECEDERO (VEG)` debe tener estos encabezados:
 
 ```text
-FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | PRECIO UNITARIO | COSTO PERDIDA
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
 ```
 
 El costo perdido se calcula multiplicando el precio unitario por la cantidad.
