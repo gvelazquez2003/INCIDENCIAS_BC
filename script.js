@@ -225,6 +225,7 @@ const FALLBACK_CATALOGS = {
 const state = {
   activeModule: '',
   catalogs: FALLBACK_CATALOGS,
+  remoteModuleIds: null,
 };
 
 const elements = {
@@ -378,6 +379,11 @@ function setupForm() {
       return;
     }
 
+    if (!remoteSupportsModule(state.activeModule)) {
+      showToast(`El Apps Script publicado no incluye ${module.label}. Despliega el Code.gs actualizado.`, 'error');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await saveIncident(payload);
@@ -386,11 +392,19 @@ function setupForm() {
       elements.form.reset();
       setToday();
     } catch (error) {
-      showToast(error.message || 'No se pudo guardar el registro.', 'error');
+      showToast(getSaveErrorMessage(error, module), 'error');
     } finally {
       setLoading(false);
     }
   });
+}
+
+function getSaveErrorMessage(error, module) {
+  const message = String(error && error.message || '');
+  if (module && module.id === 'consumo' && normalizeText(message) === 'TIPO DE INCIDENCIA NO VALIDO.') {
+    return 'El Apps Script publicado no incluye CONSUMO INTERNO. Despliega el Code.gs actualizado.';
+  }
+  return message || 'No se pudo guardar el registro.';
 }
 
 function readExtraPayload(formData, module) {
@@ -436,6 +450,9 @@ async function loadRemoteCatalogs() {
     const response = await fetch(url, { cache: 'no-store' });
     const result = await parseResponse(response);
     if (!result.success || !result.data) return;
+    state.remoteModuleIds = Array.isArray(result.data.modules)
+      ? result.data.modules.map((module) => module.id)
+      : null;
     state.catalogs = {
       ...FALLBACK_CATALOGS,
       ...result.data,
@@ -446,6 +463,10 @@ async function loadRemoteCatalogs() {
   } catch (error) {
     showToast('Se usara el catalogo local mientras se conecta Apps Script.', 'error');
   }
+}
+
+function remoteSupportsModule(moduleId) {
+  return !state.remoteModuleIds || state.remoteModuleIds.includes(moduleId);
 }
 
 async function saveIncident(payload) {
