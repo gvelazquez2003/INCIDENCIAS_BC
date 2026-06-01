@@ -1,4 +1,4 @@
-const SCRIPT_VERSION = '2026-06-01-consumo-interno-precios';
+const SCRIPT_VERSION = '2026-06-01-consumo-interno-precios-v2';
 
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
@@ -342,7 +342,7 @@ function doGet(e) {
       return jsonResponse_(true, result, 'Precios configurados y registros actualizados.');
     }
     if (action === 'ping') {
-      return jsonResponse_(true, { ok: true }, 'Servicio disponible.');
+      return jsonResponse_(true, { ok: true, version: SCRIPT_VERSION }, 'Servicio disponible.');
     }
     return jsonResponse_(false, null, 'Accion GET no soportada.');
   } catch (error) {
