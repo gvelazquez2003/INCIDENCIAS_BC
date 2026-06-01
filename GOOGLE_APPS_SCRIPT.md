@@ -19,8 +19,8 @@ El ID es el texto ubicado entre `/d/` y `/edit` en el enlace del spreadsheet.
 5. Comprueba que cada fila aparece en la pestana que corresponde.
 
 Cada cambio de `Code.gs` requiere crear una nueva version del despliegue web en
-Apps Script. Si el frontend indica que `Consumo Interno` no esta incluido,
-reemplaza `Code.gs` y actualiza el despliegue antes de probar nuevamente.
+Apps Script. Reemplaza `Code.gs` y actualiza el despliegue antes de probar
+nuevamente.
 
 La pestana `CONSUMO INTERNO` debe existir con estos encabezados:
 
