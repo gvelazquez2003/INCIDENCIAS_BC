@@ -3,6 +3,18 @@
 const APPS_SCRIPT_URL = String(window.APPS_SCRIPT_URL || '').trim();
 const APPS_SCRIPT_PROXY_URL = '/api/apps-script';
 
+const MANIPULACION_EXTRA_PRODUCTS = [
+  'PAN DEMI BAGUETTE CONGELADO',
+  'CROISSANT SIMPLE',
+  'BAGEL UND',
+  'PAN DE PERRO UND',
+  'PAN CACHORRO UND',
+  'PAN DE HAMBURGUESA 55G UND',
+  'PAN DE HAMBURGUESA 85G UND',
+  'PAN DE HAMBURGUESA 95G UND',
+  'PAN TIPO DELI UND',
+];
+
 const FALLBACK_CATALOGS = {
   modules: [
     {
@@ -64,6 +76,7 @@ const FALLBACK_CATALOGS = {
       id: 'manipulacion',
       label: 'MALA MANIPULACION (COCINA)',
       description: 'Producto quemado, mal armado o error en cambios.',
+      productCatalog: 'productosManipulacion',
       incidenciasCatalog: 'incidenciasManipulacion',
       extraFields: [
         {
@@ -269,6 +282,8 @@ const FALLBACK_CATALOGS = {
     'SPREAD DE TOMATES SECOS PAQ',
   ],
 };
+
+FALLBACK_CATALOGS.productosManipulacion = FALLBACK_CATALOGS.productos.concat(MANIPULACION_EXTRA_PRODUCTS);
 
 const state = {
   activeModule: '',

@@ -1,4 +1,4 @@
-const SCRIPT_VERSION = '2026-06-04-header-aliases';
+const SCRIPT_VERSION = '2026-06-04-manipulacion-products';
 
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
@@ -38,6 +38,18 @@ const HEADER_ALIASES = {
   PRECIO: ['PRECIO UNITARIO', 'PRECIO POR KG', 'PRECIO X KG', 'PRECIO POR UNIDAD', 'PRECIO X UND/KG', 'PRECIO'],
   COSTO_PERDIDA: ['COSTO PERDIDA', 'COSTO PERDIDA.', 'COSTO PÉRDIDA', 'COSTO PERDIDO'],
 };
+
+const MANIPULACION_EXTRA_PRODUCTS = [
+  'PAN DEMI BAGUETTE CONGELADO',
+  'CROISSANT SIMPLE',
+  'BAGEL UND',
+  'PAN DE PERRO UND',
+  'PAN CACHORRO UND',
+  'PAN DE HAMBURGUESA 55G UND',
+  'PAN DE HAMBURGUESA 85G UND',
+  'PAN DE HAMBURGUESA 95G UND',
+  'PAN TIPO DELI UND',
+];
 
 const CATALOGS = {
   modules: [
@@ -100,6 +112,7 @@ const CATALOGS = {
       id: 'manipulacion',
       label: 'MALA MANIPULACION (COCINA)',
       description: 'Producto quemado, mal armado o error en cambios.',
+      productCatalog: 'productosManipulacion',
       incidenciasCatalog: 'incidenciasManipulacion',
       extraFields: [
         {
@@ -304,6 +317,8 @@ const CATALOGS = {
     'SPREAD DE TOMATES SECOS PAQ',
   ],
 };
+
+CATALOGS.productosManipulacion = CATALOGS.productos.concat(MANIPULACION_EXTRA_PRODUCTS);
 
 const PRICE_CATALOG = [
   { producto: 'BAGEL INTEGRAL DE POLLO AHUMADO', precio: 9.05 },
