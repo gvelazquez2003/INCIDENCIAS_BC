@@ -35,10 +35,10 @@ El formulario envia las primeras cinco columnas y no usa lista de incidencias.
 La pestana `DESPERDICIO PERECEDERO (VEG)` debe incluir cantidad:
 
 ```text
-FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO POR KG | COSTO PERDIDA
 ```
 
-El costo perdido se calcula multiplicando el precio unitario por la cantidad.
+El costo perdido se calcula multiplicando el precio por kg por la cantidad.
 
 Las pestanas `ERROR EN SERVICIO (BARRA)` y `MALA MANIPULACION (COCINA)` deben
 ubicar `CANTIDAD` a la derecha de `PRODUCTO`:

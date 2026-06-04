@@ -1,4 +1,4 @@
-const SCRIPT_VERSION = '2026-06-01-desperdicio-observaciones';
+const SCRIPT_VERSION = '2026-06-04-header-aliases';
 
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
@@ -9,7 +9,7 @@ const CONFIG = {
     servicio: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     consumo: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
     manipulacion: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'LISTA DE INCIDENCIAS', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
-    desperdicio: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
+    desperdicio: ['FECHA', 'PRODUCTO', 'CANTIDAD', 'RESPONSABLE', 'TURNO', 'OBSERVACIONES', 'PRECIO POR KG', 'COSTO PERDIDA'],
     merma_pan: ['FECHA', 'PRODUCTO', 'RESPONSABLE', 'TURNO', 'CANTIDAD', 'FECHA DE VENCIMIENTO DEL PAQUETE', 'PRECIO UNITARIO', 'COSTO PERDIDA'],
   },
   sheetNames: {
@@ -24,6 +24,19 @@ const CONFIG = {
     resumen: 'RESUMEN REGISTROS',
   },
   priceSheetName: 'PRECIOS PRODUCTOS',
+};
+
+const HEADER_ALIASES = {
+  FECHA: ['FECHA'],
+  PRODUCTO: ['PRODUCTO'],
+  CANTIDAD: ['CANTIDAD'],
+  RESPONSABLE: ['RESPONSABLE'],
+  TURNO: ['TURNO'],
+  LISTA_INCIDENCIAS: ['LISTA DE INCIDENCIAS', 'INCIDENCIA', 'INCIDENCIAS'],
+  OBSERVACIONES: ['OBSERVACIONES', 'OBSERVACION'],
+  FECHA_VENCIMIENTO: ['FECHA DE VENCIMIENTO DEL PAQUETE', 'FECHA VENCIMIENTO', 'VENCIMIENTO'],
+  PRECIO: ['PRECIO UNITARIO', 'PRECIO POR KG', 'PRECIO X KG', 'PRECIO POR UNIDAD', 'PRECIO X UND/KG', 'PRECIO'],
+  COSTO_PERDIDA: ['COSTO PERDIDA', 'COSTO PERDIDA.', 'COSTO PÉRDIDA', 'COSTO PERDIDO'],
 };
 
 const CATALOGS = {
@@ -514,21 +527,46 @@ function ensureHeaders_(sheet, expected) {
   }
 
   const width = Math.max(sheet.getLastColumn(), expected.length);
-  const current = sheet.getRange(1, 1, 1, width).getValues()[0].map(normalizeText_);
+  const current = sheet.getRange(1, 1, 1, width).getValues()[0];
   const fullHeadersAreValid = expected.every(function (header, index) {
-    return normalizeText_(header) === current[index];
+    return headerMatches_(header, current[index]);
+  });
+  const canonicalHeadersAreWritten = expected.every(function (header, index) {
+    return normalizeText_(header) === normalizeText_(current[index]);
   });
   const existingHeadersCanMigrate = current.slice(0, Math.min(current.length, expected.length)).every(function (header, index) {
-    return !header || normalizeText_(expected[index]) === header;
+    return !normalizeText_(header) || headerMatches_(expected[index], header);
   });
 
-  if (fullHeadersAreValid) return;
+  if (fullHeadersAreValid) {
+    if (!canonicalHeadersAreWritten) {
+      sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+    }
+    return;
+  }
   if (existingHeadersCanMigrate) {
     sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
     return;
   }
 
   throw new Error('La hoja "' + sheet.getName() + '" debe tener columnas: ' + expected.join(', ') + '.');
+}
+
+function headerMatches_(expectedHeader, currentHeader) {
+  const expectedKey = getHeaderKey_(expectedHeader);
+  const currentKey = getHeaderKey_(currentHeader);
+  return expectedKey && currentKey && expectedKey === currentKey;
+}
+
+function getHeaderKey_(header) {
+  const normalized = normalizeText_(header);
+  const keys = Object.keys(HEADER_ALIASES);
+  for (let index = 0; index < keys.length; index += 1) {
+    const key = keys[index];
+    const aliases = HEADER_ALIASES[key].map(normalizeText_);
+    if (aliases.indexOf(normalized) !== -1) return key;
+  }
+  return normalized;
 }
 
 function parseDate_(rawValue, fieldName) {
@@ -804,7 +842,7 @@ function updateAllPriceColumns_() {
 
     const productColumn = 2;
     const quantityColumn = module.id === 'merma_pan' ? 5 : module.id === 'desperdicio' || module.id === 'servicio' || module.id === 'consumo' || module.id === 'manipulacion' ? 3 : null;
-    const priceColumn = headers.indexOf('PRECIO UNITARIO') + 1;
+    const priceColumn = findHeaderIndex_(headers, 'PRECIO UNITARIO') + 1;
     if (!priceColumn) return;
     const rowCount = lastRow - 1;
     const values = sheet.getRange(2, 1, rowCount, headers.length).getValues();
@@ -818,6 +856,13 @@ function updateAllPriceColumns_() {
     updatedRows += rowCount;
   });
   return updatedRows;
+}
+
+function findHeaderIndex_(headers, expectedHeader) {
+  for (let index = 0; index < headers.length; index += 1) {
+    if (headerMatches_(expectedHeader, headers[index])) return index;
+  }
+  return -1;
 }
 
 function findProductPrice_(producto) {

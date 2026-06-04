@@ -55,10 +55,10 @@ El backend completa `PRECIO UNITARIO` desde `PRECIOS PRODUCTOS` y calcula
 La hoja `DESPERDICIO PERECEDERO (VEG)` debe tener estos encabezados:
 
 ```text
-FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO POR KG | COSTO PERDIDA
 ```
 
-El costo perdido se calcula multiplicando el precio unitario por la cantidad.
+El costo perdido se calcula multiplicando el precio por kg por la cantidad.
 
 Las hojas `ERROR EN SERVICIO (BARRA)` y `MALA MANIPULACION (COCINA)` deben
 ubicar `CANTIDAD` a la derecha de `PRODUCTO`:
