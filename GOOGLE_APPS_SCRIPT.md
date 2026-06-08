@@ -25,11 +25,11 @@ nuevamente.
 La pestana `CONSUMO INTERNO` debe existir con estos encabezados:
 
 ```text
-FECHA | PRODUCTO | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | MONTO | COSTO PERDIDA
 ```
 
-El formulario envia las primeras cinco columnas y no usa lista de incidencias.
-`Code.gs` completa `PRECIO UNITARIO` desde `PRECIOS PRODUCTOS` y calcula
+El formulario no usa lista de incidencias en este modulo.
+`Code.gs` completa `MONTO` desde `PRECIOS PRODUCTOS` y calcula
 `COSTO PERDIDA` automaticamente.
 
 La pestana `DESPERDICIO PERECEDERO (VEG)` debe incluir cantidad:
@@ -51,7 +51,7 @@ La pestana `CONSUMO INTERNO` tambien debe ubicar `CANTIDAD` a la derecha de
 `PRODUCTO`:
 
 ```text
-FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | MONTO | COSTO PERDIDA
 ```
 
 Si las pestanas no mantienen los nombres de la plantilla, modifica

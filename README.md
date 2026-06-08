@@ -45,11 +45,11 @@ FECHA | PRODUCTO | RESPONSABLE | TURNO | PRECIO UNITARIO | COSTO PERDIDA
 La hoja `CONSUMO INTERNO` debe tener estos encabezados:
 
 ```text
-FECHA | PRODUCTO | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | MONTO | COSTO PERDIDA
 ```
 
-El formulario captura las primeras cinco columnas y no usa lista de incidencias.
-El backend completa `PRECIO UNITARIO` desde `PRECIOS PRODUCTOS` y calcula
+El formulario no usa lista de incidencias en este modulo.
+El backend completa `MONTO` desde `PRECIOS PRODUCTOS` y calcula
 `COSTO PERDIDA` automaticamente.
 
 La hoja `DESPERDICIO PERECEDERO (VEG)` debe tener estos encabezados:
@@ -70,7 +70,7 @@ FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | LISTA DE INCIDENCIAS | OBSER
 La hoja `CONSUMO INTERNO` tambien ubica `CANTIDAD` a la derecha de `PRODUCTO`:
 
 ```text
-FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | PRECIO UNITARIO | COSTO PERDIDA
+FECHA | PRODUCTO | CANTIDAD | RESPONSABLE | TURNO | OBSERVACIONES | MONTO | COSTO PERDIDA
 ```
 
 El tercer nombre esta abreviado porque el archivo Excel inicial limita los
