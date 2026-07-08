@@ -503,6 +503,7 @@ async function loadRemoteCatalogs() {
     state.catalogs = {
       ...FALLBACK_CATALOGS,
       ...result.data,
+      incidenciasServicio: mergeCatalogValues(FALLBACK_CATALOGS.incidenciasServicio, result.data.incidenciasServicio),
       modules: mergeModules(FALLBACK_CATALOGS.modules, result.data.modules),
     };
     renderCatalogs();
@@ -556,6 +557,17 @@ function mergeModules(localModules, remoteModules) {
     if (!merged.some((item) => item.id === module.id)) merged.push(module);
   });
 
+  return merged;
+}
+
+function mergeCatalogValues(localValues, remoteValues) {
+  const merged = [];
+  const addValue = (value) => {
+    if (!hasCatalogValue(merged, value)) merged.push(value);
+  };
+
+  (Array.isArray(remoteValues) ? remoteValues : []).forEach(addValue);
+  (Array.isArray(localValues) ? localValues : []).forEach(addValue);
   return merged;
 }
 
