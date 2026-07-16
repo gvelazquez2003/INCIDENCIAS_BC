@@ -571,7 +571,27 @@ function ensureHeaders_(sheet, expected) {
     return;
   }
 
-  throw new Error('La hoja "' + sheet.getName() + '" debe tener columnas: ' + expected.join(', ') + '.');
+  migrateSheetHeaders_(sheet, expected, current);
+}
+
+function migrateSheetHeaders_(sheet, expected, currentHeaders) {
+  const lastRow = sheet.getLastRow();
+  const currentWidth = Math.max(sheet.getLastColumn(), currentHeaders.length);
+  const rowCount = Math.max(lastRow - 1, 0);
+  const sourceRows = rowCount > 0 ? sheet.getRange(2, 1, rowCount, currentWidth).getValues() : [];
+  const headerKeys = currentHeaders.map(getHeaderKey_);
+  const migratedRows = sourceRows.map(function (row) {
+    return expected.map(function (header) {
+      const sourceIndex = headerKeys.indexOf(getHeaderKey_(header));
+      return sourceIndex === -1 ? '' : row[sourceIndex];
+    });
+  });
+
+  sheet.clear();
+  sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+  if (migratedRows.length) {
+    sheet.getRange(2, 1, migratedRows.length, expected.length).setValues(migratedRows);
+  }
 }
 
 function headerMatches_(expectedHeader, currentHeader) {
