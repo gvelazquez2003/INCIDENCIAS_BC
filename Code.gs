@@ -191,10 +191,13 @@ const CATALOGS = {
   ],
   responsables: [
     'SANTIAGO GUILLEN',
-    'VANESSA HERNANDEZ',
     'YVIANIS BOLIVAR',
     'LICETH CARRASCAL',
     'KEIDER MORA',
+    'RICARDO GOICOCHEA',
+    'JOHANS BRITO',
+    'VICTOR GALAVIS',
+    'EMILY VILORIA',
   ],
   turnos: ['DIURNO', 'NOCTURNO'],
   incidenciasServicio: [
