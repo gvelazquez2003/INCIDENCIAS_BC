@@ -21,6 +21,7 @@ const FALLBACK_CATALOGS = {
       id: 'servicio',
       label: 'ERROR EN SERVICIO (BARRA)',
       description: 'Mala facturacion: cobro de mas o cambios mal anotados.',
+      responsablesCatalog: 'responsablesBarra',
       incidenciasCatalog: 'incidenciasServicio',
       extraFields: [
         {
@@ -53,6 +54,7 @@ const FALLBACK_CATALOGS = {
       id: 'consumo',
       label: 'CONSUMO INTERNO',
       description: 'Producto destinado al consumo interno del equipo.',
+      responsablesCatalog: 'responsablesCocina',
       extraFields: [
         {
           name: 'cantidad',
@@ -76,6 +78,7 @@ const FALLBACK_CATALOGS = {
       id: 'manipulacion',
       label: 'MALA MANIPULACION (COCINA)',
       description: 'Producto quemado, mal armado o error en cambios.',
+      responsablesCatalog: 'responsablesCocina',
       productCatalog: 'productosManipulacion',
       incidenciasCatalog: 'incidenciasManipulacion',
       extraFields: [
@@ -109,6 +112,7 @@ const FALLBACK_CATALOGS = {
       id: 'desperdicio',
       label: 'DESPERDICIO PERECEDERO (VEGETALES)',
       description: 'Vegetales marchitos o mayugados.',
+      responsablesCatalog: 'responsablesCocina',
       productCatalog: 'productosDesperdicio',
       extraFields: [
         {
@@ -133,6 +137,7 @@ const FALLBACK_CATALOGS = {
       id: 'merma_pan',
       label: 'MERMA DE PAN (COCINA)',
       description: 'Pan de cocina retirado por merma o vencimiento del paquete.',
+      responsablesCatalog: 'responsablesCocina',
       productCatalog: 'productosMermaPan',
       extraFields: [
         {
@@ -152,6 +157,18 @@ const FALLBACK_CATALOGS = {
         },
       ],
     },
+  ],
+  responsablesBarra: [
+    'LICETH CARRASCAL',
+    'VICTOR GALAVIS',
+    'KEIDER MORA',
+    'EMILY VILORIA',
+  ],
+  responsablesCocina: [
+    'SANTIAGO GUILLEN',
+    'YVIANIS BOLIVAR',
+    'RICARDO GOICOCHEA',
+    'JOHANS BRITO',
   ],
   responsables: [
     'SANTIAGO GUILLEN',
@@ -353,6 +370,7 @@ function openModule(moduleId) {
   elements.entryPanel.classList.remove('hidden');
   elements.form.reset();
   setToday();
+  renderResponsibleOptions(module);
   renderProductOptions(module);
   renderExtraFields(module);
   elements.entryPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -387,9 +405,13 @@ function renderExtraField(field) {
 }
 
 function renderCatalogs() {
-  renderSelect(elements.responsable, state.catalogs.responsables, 'Seleccione un responsable...');
+  renderResponsibleOptions(getActiveModule());
   renderSelect(elements.turno, state.catalogs.turnos, 'Seleccione un turno...');
   renderProductOptions(getActiveModule());
+}
+
+function renderResponsibleOptions(module) {
+  renderSelect(elements.responsable, getResponsibleCatalog(module), 'Seleccione un responsable...');
 }
 
 function renderProductOptions(module) {
@@ -436,6 +458,11 @@ function setupForm() {
 
     if (!hasCatalogValue(getProductCatalog(module), payload.producto)) {
       showToast('Selecciona un producto valido de la lista.', 'error');
+      return;
+    }
+
+    if (!hasCatalogValue(getResponsibleCatalog(module), payload.responsable)) {
+      showToast('Selecciona un responsable valido de la lista.', 'error');
       return;
     }
 
@@ -580,6 +607,11 @@ function getActiveModule(moduleId = state.activeModule) {
 
 function getProductCatalog(module) {
   const catalogName = module && module.productCatalog ? module.productCatalog : 'productos';
+  return Array.isArray(state.catalogs[catalogName]) ? state.catalogs[catalogName] : [];
+}
+
+function getResponsibleCatalog(module) {
+  const catalogName = module && module.responsablesCatalog ? module.responsablesCatalog : 'responsables';
   return Array.isArray(state.catalogs[catalogName]) ? state.catalogs[catalogName] : [];
 }
 

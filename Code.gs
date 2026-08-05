@@ -57,6 +57,7 @@ const CATALOGS = {
       id: 'servicio',
       label: 'ERROR EN SERVICIO (BARRA)',
       description: 'Mala facturacion: cobro de mas o cambios mal anotados.',
+      responsablesCatalog: 'responsablesBarra',
       incidenciasCatalog: 'incidenciasServicio',
       extraFields: [
         {
@@ -89,6 +90,7 @@ const CATALOGS = {
       id: 'consumo',
       label: 'CONSUMO INTERNO',
       description: 'Producto destinado al consumo interno del equipo.',
+      responsablesCatalog: 'responsablesCocina',
       extraFields: [
         {
           name: 'cantidad',
@@ -112,6 +114,7 @@ const CATALOGS = {
       id: 'manipulacion',
       label: 'MALA MANIPULACION (COCINA)',
       description: 'Producto quemado, mal armado o error en cambios.',
+      responsablesCatalog: 'responsablesCocina',
       productCatalog: 'productosManipulacion',
       incidenciasCatalog: 'incidenciasManipulacion',
       extraFields: [
@@ -145,6 +148,7 @@ const CATALOGS = {
       id: 'desperdicio',
       label: 'DESPERDICIO PERECEDERO (VEGETALES)',
       description: 'Vegetales marchitos o mayugados.',
+      responsablesCatalog: 'responsablesCocina',
       productCatalog: 'productosDesperdicio',
       extraFields: [
         {
@@ -169,6 +173,7 @@ const CATALOGS = {
       id: 'merma_pan',
       label: 'MERMA DE PAN (COCINA)',
       description: 'Pan de cocina retirado por merma o vencimiento del paquete.',
+      responsablesCatalog: 'responsablesCocina',
       productCatalog: 'productosMermaPan',
       extraFields: [
         {
@@ -188,6 +193,18 @@ const CATALOGS = {
         },
       ],
     },
+  ],
+  responsablesBarra: [
+    'LICETH CARRASCAL',
+    'VICTOR GALAVIS',
+    'KEIDER MORA',
+    'EMILY VILORIA',
+  ],
+  responsablesCocina: [
+    'SANTIAGO GUILLEN',
+    'YVIANIS BOLIVAR',
+    'RICARDO GOICOCHEA',
+    'JOHANS BRITO',
   ],
   responsables: [
     'SANTIAGO GUILLEN',
@@ -457,8 +474,9 @@ function guardarIncidencia_(payload) {
 
   const module = resolveModule_(data.tipoIncidencia);
   const productCatalog = CATALOGS[module.productCatalog || 'productos'];
+  const responsablesCatalog = CATALOGS[module.responsablesCatalog || 'responsables'];
   const producto = requireCatalogValue_(data.producto, productCatalog, 'producto');
-  const responsable = requireCatalogValue_(data.responsable, CATALOGS.responsables, 'responsable');
+  const responsable = requireCatalogValue_(data.responsable, responsablesCatalog, 'responsable');
   const turno = requireCatalogValue_(data.turno, CATALOGS.turnos, 'turno');
   const fecha = parseDate_(data.fecha, 'fecha');
   const sheet = getSheet_(module.sheetName);
