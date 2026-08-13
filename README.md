@@ -91,13 +91,13 @@ Luego de desplegar Apps Script, abre la URL del Web App con esta accion para cre
 la pestana y encabezados:
 
 ```text
-https://script.google.com/macros/s/.../exec?action=setupSheets
+https://script.google.com/macros/s/AKfycbxAf7JRKSOAg4HVHberdEyNTOyne_bapiYjljoAr76vw9z4fI_MxuoGex_1omyvlwgj/exec?action=setupSheets
 ```
 
 Tambien puedes refrescar la visualizacion manualmente con:
 
 ```text
-https://script.google.com/macros/s/.../exec?action=refreshVisualization
+https://script.google.com/macros/s/AKfycbxAf7JRKSOAg4HVHberdEyNTOyne_bapiYjljoAr76vw9z4fI_MxuoGex_1omyvlwgj/exec?action=refreshVisualization
 ```
 
 Cada nuevo registro intenta actualizar automaticamente estas pestanas.
@@ -113,7 +113,7 @@ Cada nuevo registro intenta actualizar automaticamente estas pestanas.
 4. Copia la URL terminada en `/exec` y pegala en `config.js`:
 
 ```js
-window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/.../exec';
+window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAf7JRKSOAg4HVHberdEyNTOyne_bapiYjljoAr76vw9z4fI_MxuoGex_1omyvlwgj/exec';
 ```
 
 5. Publica este frontend en Vercel para habilitar el proxy `/api/apps-script`.
