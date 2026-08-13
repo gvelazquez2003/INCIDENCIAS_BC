@@ -1,4 +1,6 @@
-const SCRIPT_VERSION = '2026-06-08-consumo-monto';
+const SCRIPT_VERSION = '2026-08-13-bc-no-summary-sheet';
+const VISUALIZATION_REGISTROS_SHEET = 'VISUALIZACION REGISTROS';
+const OBSOLETE_RESUMEN_REGISTROS_SHEET = 'RESUMEN REGISTROS';
 
 const CONFIG = {
   // Replace this value with the ID from the Google Sheets URL before deploying.
@@ -19,10 +21,6 @@ const CONFIG = {
     desperdicio: 'DESPERDICIO PERECEDERO (VEG)',
     merma_pan: 'MERMA DE PAN (COCINA)',
   },
-  visualizationSheets: {
-    registros: 'VISUALIZACION REGISTROS',
-  },
-  removedVisualizationSheets: ['RESUMEN REGISTROS'],
   priceSheetName: 'PRECIOS PRODUCTOS',
 };
 
@@ -729,7 +727,7 @@ function setupSheets_() {
 
 function refreshVisualization_() {
   const registros = collectVisualizationRows_();
-  const registrosSheet = getSheet_(CONFIG.visualizationSheets.registros);
+  const registrosSheet = getSheet_(VISUALIZATION_REGISTROS_SHEET);
   const registrosHeaders = [
     'FECHA',
     'MODULO',
@@ -747,10 +745,10 @@ function refreshVisualization_() {
   rewriteSheet_(registrosSheet, registrosHeaders, registros);
   if (registros.length) {
   }
-  deleteRemovedVisualizationSheets_();
+  deleteSheetIfExists_(OBSOLETE_RESUMEN_REGISTROS_SHEET);
 
   return {
-    registrosSheet: CONFIG.visualizationSheets.registros,
+    registrosSheet: VISUALIZATION_REGISTROS_SHEET,
     totalRegistros: registros.length,
     totalCostoPerdido: sumCost_(registros),
   };
@@ -810,15 +808,12 @@ function rewriteSheet_(sheet, headers, rows) {
   formatHeader_(sheet, headers.length);
 }
 
-function deleteRemovedVisualizationSheets_() {
+function deleteSheetIfExists_(sheetName) {
   const spreadsheet = getSpreadsheet_();
-  const removedSheets = CONFIG.removedVisualizationSheets || [];
-  removedSheets.forEach(function (sheetName) {
-    const sheet = spreadsheet.getSheetByName(sheetName);
-    if (sheet && spreadsheet.getSheets().length > 1) {
-      spreadsheet.deleteSheet(sheet);
-    }
-  });
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) return false;
+  spreadsheet.deleteSheet(sheet);
+  return true;
 }
 
 function formatHeader_(sheet, columns) {
