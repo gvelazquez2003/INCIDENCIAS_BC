@@ -21,8 +21,8 @@ const CONFIG = {
   },
   visualizationSheets: {
     registros: 'VISUALIZACION REGISTROS',
-    resumen: 'RESUMEN REGISTROS',
   },
+  removedVisualizationSheets: ['RESUMEN REGISTROS'],
   priceSheetName: 'PRECIOS PRODUCTOS',
 };
 
@@ -747,16 +747,10 @@ function refreshVisualization_() {
   rewriteSheet_(registrosSheet, registrosHeaders, registros);
   if (registros.length) {
   }
-
-  const resumenSheet = getSheet_(CONFIG.visualizationSheets.resumen);
-  const resumen = buildSummaryRows_(registros);
-  rewriteSheet_(resumenSheet, ['INDICADOR', 'VALOR', 'TOTAL', 'COSTO TOTAL'], resumen);
-  if (resumen.length) {
-  }
+  deleteRemovedVisualizationSheets_();
 
   return {
     registrosSheet: CONFIG.visualizationSheets.registros,
-    resumenSheet: CONFIG.visualizationSheets.resumen,
     totalRegistros: registros.length,
     totalCostoPerdido: sumCost_(registros),
   };
@@ -807,36 +801,6 @@ function normalizeVisualizationRow_(module, row) {
 
   return [row[0], module.label, row[1], row[2], row[3], '', '', '', '', row[4], row[5]];
 }
-
-function buildSummaryRows_(registros) {
-  const totalCosto = sumCost_(registros);
-  const rows = [
-    ['TOTAL COSTO PERDIDO', 'TODOS LOS MODULOS', '', totalCosto],
-    ['TOTAL GENERAL', 'REGISTROS', registros.length, totalCosto],
-  ];
-  appendGroupedSummary_(rows, registros, 1, 'POR MODULO');
-  appendGroupedSummary_(rows, registros, 3, 'POR RESPONSABLE');
-  appendGroupedSummary_(rows, registros, 4, 'POR TURNO');
-  appendGroupedSummary_(rows, registros, 5, 'POR INCIDENCIA');
-  appendGroupedSummary_(rows, registros, 2, 'POR PRODUCTO');
-  return rows;
-}
-
-function appendGroupedSummary_(rows, registros, columnIndex, title) {
-  const counts = {};
-  const costs = {};
-  registros.forEach(function (row) {
-    const value = String(row[columnIndex] || '').trim();
-    if (!value) return;
-    counts[value] = (counts[value] || 0) + 1;
-    costs[value] = (costs[value] || 0) + Number(row[10] || 0);
-  });
-
-  Object.keys(counts).sort().forEach(function (value) {
-    rows.push([title, value, counts[value], costs[value] || '']);
-  });
-}
-
 function rewriteSheet_(sheet, headers, rows) {
   sheet.clear();
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -844,6 +808,17 @@ function rewriteSheet_(sheet, headers, rows) {
     sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
   }
   formatHeader_(sheet, headers.length);
+}
+
+function deleteRemovedVisualizationSheets_() {
+  const spreadsheet = getSpreadsheet_();
+  const removedSheets = CONFIG.removedVisualizationSheets || [];
+  removedSheets.forEach(function (sheetName) {
+    const sheet = spreadsheet.getSheetByName(sheetName);
+    if (sheet && spreadsheet.getSheets().length > 1) {
+      spreadsheet.deleteSheet(sheet);
+    }
+  });
 }
 
 function formatHeader_(sheet, columns) {

@@ -80,13 +80,15 @@ renombradas, actualiza `CONFIG.sheetNames` en `Code.gs`.
 
 ## Visualizacion en Google Sheets
 
-`Code.gs` puede crear y mantener dos pestanas para revisar los registros:
+`Code.gs` puede crear y mantener una pestana para revisar los registros:
 
 - `VISUALIZACION REGISTROS`: consolida todos los modulos en una sola tabla.
-- `RESUMEN REGISTROS`: muestra conteos por modulo, responsable, turno e incidencia.
+
+La pestana anterior `RESUMEN REGISTROS` fue retirada. Si existe en el Google
+Sheet, `setupSheets` o `refreshVisualization` la eliminan automaticamente.
 
 Luego de desplegar Apps Script, abre la URL del Web App con esta accion para crear
-las pestanas y encabezados:
+la pestana y encabezados:
 
 ```text
 https://script.google.com/macros/s/.../exec?action=setupSheets
